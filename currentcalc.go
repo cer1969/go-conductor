@@ -8,7 +8,7 @@ import (
 
 //----------------------------------------------------------------------------------------
 
-type currentcalc struct {
+type CurrentCalc struct {
 	Conductor           // Conductor instance
 	altitude    float64 // Altitude [m] = 300.0
 	airVelocity float64 // Velocity of air stream [ft/seg] =   2.0
@@ -18,7 +18,7 @@ type currentcalc struct {
 	deltaTemp   float64 // Temperature difference to determine equality [°C] = 0.0001
 }
 
-func (cc *currentcalc) Resistance(tc float64) (r float64, err error) {
+func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
 	ts := Tester{}
 	ts.Ge("Resistance", tc, TC_MIN)
 	ts.Le("Resistance", tc, TC_MAX)
@@ -28,7 +28,7 @@ func (cc *currentcalc) Resistance(tc float64) (r float64, err error) {
 	return
 }
 
-func (cc *currentcalc) Current(ta float64, tc float64) (q float64, err error) {
+func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	ts := Tester{}
 	ts.Ge("Current ta", ta, TA_MIN)
 	ts.Le("Current ta", ta, TA_MAX)
@@ -80,11 +80,11 @@ func (cc *currentcalc) Current(ta float64, tc float64) (q float64, err error) {
 	}
 }
 
-func (cc *currentcalc) Altitude() float64 {
+func (cc *CurrentCalc) Altitude() float64 {
 	return cc.altitude
 }
 
-func (cc *currentcalc) SetAltitude(h float64) error {
+func (cc *CurrentCalc) SetAltitude(h float64) error {
 	ts := Tester{}
 	ts.Ge("SetAltitude", h, 0)
 
@@ -93,11 +93,11 @@ func (cc *currentcalc) SetAltitude(h float64) error {
 	return ts.GetError()
 }
 
-func (cc *currentcalc) AirVelocity() float64 {
+func (cc *CurrentCalc) AirVelocity() float64 {
 	return cc.airVelocity
 }
 
-func (cc *currentcalc) SetAirVelocity(v float64) error {
+func (cc *CurrentCalc) SetAirVelocity(v float64) error {
 	ts := Tester{}
 	ts.Ge("SetAirVelocity", v, 0)
 
@@ -106,11 +106,11 @@ func (cc *currentcalc) SetAirVelocity(v float64) error {
 	return ts.GetError()
 }
 
-func (cc *currentcalc) SunEffect() float64 {
+func (cc *CurrentCalc) SunEffect() float64 {
 	return cc.sunEffect
 }
 
-func (cc *currentcalc) SetSunEffect(se float64) error {
+func (cc *CurrentCalc) SetSunEffect(se float64) error {
 	ts := Tester{}
 	ts.Ge("SetSunEffect", se, 0)
 	ts.Le("SetSunEffect", se, 1)
@@ -120,11 +120,11 @@ func (cc *currentcalc) SetSunEffect(se float64) error {
 	return ts.GetError()
 }
 
-func (cc *currentcalc) Emissivity() float64 {
+func (cc *CurrentCalc) Emissivity() float64 {
 	return cc.emissivity
 }
 
-func (cc *currentcalc) SetEmissivity(e float64) error {
+func (cc *CurrentCalc) SetEmissivity(e float64) error {
 	ts := Tester{}
 	ts.Ge("SetEmissivity", e, 0)
 	ts.Le("SetEmissivity", e, 1)
@@ -134,22 +134,22 @@ func (cc *currentcalc) SetEmissivity(e float64) error {
 	return ts.GetError()
 }
 
-func (cc *currentcalc) Formula() string {
+func (cc *CurrentCalc) Formula() string {
 	return cc.formula
 }
 
-func (cc *currentcalc) SetFormula(f string) {
+func (cc *CurrentCalc) SetFormula(f string) {
 	if f != CF_CLASSIC {
 		f = CF_IEEE
 	}
 	cc.formula = f
 }
 
-func (cc *currentcalc) DeltaTemp() float64 {
+func (cc *CurrentCalc) DeltaTemp() float64 {
 	return cc.deltaTemp
 }
 
-func (cc *currentcalc) SetDeltaTemp(t float64) error {
+func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
 	ts := Tester{}
 	ts.Gt("SetDeltaTemp", t, 0)
 
@@ -160,7 +160,7 @@ func (cc *currentcalc) SetDeltaTemp(t float64) error {
 
 //----------------------------------------------------------------------------------------
 
-func NewCurrentCalc(cond Conductor) (cc currentcalc, err error) {
+func NewCurrentCalc(cond Conductor) (cc CurrentCalc, err error) {
 	ts := Tester{}
 	ts.Gt("NewCurrentCalc R25", cond.R25, 0)
 	ts.Gt("NewCurrentCalc Diameter", cond.Diameter, 0)
@@ -168,7 +168,7 @@ func NewCurrentCalc(cond Conductor) (cc currentcalc, err error) {
 	ts.Lt("NewCurrentCalc Alpha", cond.Alpha, 1)
 
 	err = ts.GetError()
-	cc = currentcalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
+	cc = CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
 
 	return
 }
