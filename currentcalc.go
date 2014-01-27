@@ -3,8 +3,24 @@
 package conductor
 
 import (
+	"bitbucket.org/cer1969/utils"
 	"math"
 )
+
+//----------------------------------------------------------------------------------------
+
+func NewCurrentCalc(cond Conductor) (cc CurrentCalc, err error) {
+	vc := utils.NewValueChecker("NewCurrentCalc cond")
+	vc.Gt("R25", cond.R25, 0)
+	vc.Gt("Diameter", cond.Diameter, 0)
+	vc.Gt("Alpha", cond.Alpha, 0)
+	vc.Lt("Alpha", cond.Alpha, 1)
+
+	err = vc.Error()
+	cc = CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
+
+	return
+}
 
 //----------------------------------------------------------------------------------------
 
@@ -19,12 +35,19 @@ type CurrentCalc struct {
 }
 
 func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
-	ts := Tester{}
-	ts.Ge("Resistance", tc, TC_MIN)
-	ts.Le("Resistance", tc, TC_MAX)
-	err = ts.GetError()
+	vc := utils.NewValueChecker("CurrentCalc Resistance")
+	vc.Ge("tc", tc, TC_MIN)
+	vc.Le("tc", tc, TC_MAX)
+
+	r = math.NaN()
+	err = vc.Error()
+
+	if err != nil {
+		return
+	}
 
 	r = cc.R25 * (1 + cc.Alpha*(tc-25.0))
+
 	return
 }
 
@@ -156,19 +179,4 @@ func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
 	cc.deltaTemp = t
 
 	return ts.GetError()
-}
-
-//----------------------------------------------------------------------------------------
-
-func NewCurrentCalc(cond Conductor) (cc CurrentCalc, err error) {
-	ts := Tester{}
-	ts.Gt("NewCurrentCalc R25", cond.R25, 0)
-	ts.Gt("NewCurrentCalc Diameter", cond.Diameter, 0)
-	ts.Gt("NewCurrentCalc Alpha", cond.Alpha, 0)
-	ts.Lt("NewCurrentCalc Alpha", cond.Alpha, 1)
-
-	err = ts.GetError()
-	cc = CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
-
-	return
 }
