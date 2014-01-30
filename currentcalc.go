@@ -69,8 +69,8 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	res, _ := cc.Resistance(tc)                                             // No necesito verificar error porque el valor de tc ya se verificó
 	Rc := res * 0.0003048                                                   // Resistencia en ohm/pies
 	Tm := 0.5 * (tc + ta)                                                   // Temperatura media
-	Rf := 0.2901577 * Pb / (273 + Tm)                                       // Densidad rel.aire ¿lb/ft^3?
-	Uf := 0.04165 + 0.000111*Tm                                             // Viscosidad abs. aire ¿lb/(ft x hora)
+	Rf := 0.2901577 * Pb / (273 + Tm)                                       // Densidad rel.aire [lb/ft^3]
+	Uf := 0.04165 + 0.000111*Tm                                             // Viscosidad abs. aire [lb/(ft x hora)]
 	Kf := 0.00739 + 0.0000227*Tm                                            // Coef. conductividad term. aire [Watt/(ft x °C)]
 	Qc := 0.283 * math.Sqrt(Rf) * math.Pow(D, 0.75) * math.Pow(tc-ta, 1.25) // watt/ft
 
