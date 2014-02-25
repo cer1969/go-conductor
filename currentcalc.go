@@ -52,15 +52,22 @@ func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
-	ts := Tester{}
-	ts.Ge("Current ta", ta, TA_MIN)
-	ts.Le("Current ta", ta, TA_MAX)
-	ts.Ge("Current tc", tc, TA_MIN)
-	ts.Le("Current tc", tc, TA_MAX)
-	err = ts.GetError()
+	vc := utils.NewValueChecker("CurrentCalc Current")
+	vc.Ge("ta", ta, TA_MIN)
+	vc.Le("ta", ta, TA_MAX)
+	vc.Ge("tc", tc, TA_MIN)
+	vc.Le("tc", tc, TA_MAX)
+
+	q = math.NaN()
+	err = vc.Error()
+
+	if err != nil {
+		return
+	}
 
 	if ta >= tc {
-		return 0.0, nil
+		q = 0.0
+		return
 	}
 
 	D := cc.Diameter / 25.4                                                 // Diámetro en pulgadas
@@ -97,10 +104,11 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	Qs := 3.87 * D * cc.SunEffect()
 
 	if (Qc + Qr) < Qs {
-		return 0.0, nil
+		q = 0.0
 	} else {
-		return math.Sqrt((Qc + Qr - Qs) / Rc), nil
+		q = math.Sqrt((Qc + Qr - Qs) / Rc)
 	}
+	return
 }
 
 func (cc *CurrentCalc) Altitude() float64 {
@@ -108,12 +116,12 @@ func (cc *CurrentCalc) Altitude() float64 {
 }
 
 func (cc *CurrentCalc) SetAltitude(h float64) error {
-	ts := Tester{}
-	ts.Ge("SetAltitude", h, 0)
+	vc := utils.NewValueChecker("CurrentCalc SetAltitude")
+	vc.Ge("", h, 0)
 
 	cc.altitude = h
 
-	return ts.GetError()
+	return vc.Error()
 }
 
 func (cc *CurrentCalc) AirVelocity() float64 {
@@ -121,12 +129,12 @@ func (cc *CurrentCalc) AirVelocity() float64 {
 }
 
 func (cc *CurrentCalc) SetAirVelocity(v float64) error {
-	ts := Tester{}
-	ts.Ge("SetAirVelocity", v, 0)
+	vc := utils.NewValueChecker("CurrentCalc SetAirVelocity")
+	vc.Ge("", v, 0)
 
 	cc.airVelocity = v
 
-	return ts.GetError()
+	return vc.Error()
 }
 
 func (cc *CurrentCalc) SunEffect() float64 {
@@ -134,13 +142,13 @@ func (cc *CurrentCalc) SunEffect() float64 {
 }
 
 func (cc *CurrentCalc) SetSunEffect(se float64) error {
-	ts := Tester{}
-	ts.Ge("SetSunEffect", se, 0)
-	ts.Le("SetSunEffect", se, 1)
+	vc := utils.NewValueChecker("CurrentCalc SetSunEffect")
+	vc.Ge("", se, 0)
+	vc.Le("", se, 1)
 
 	cc.sunEffect = se
 
-	return ts.GetError()
+	return vc.Error()
 }
 
 func (cc *CurrentCalc) Emissivity() float64 {
@@ -148,13 +156,13 @@ func (cc *CurrentCalc) Emissivity() float64 {
 }
 
 func (cc *CurrentCalc) SetEmissivity(e float64) error {
-	ts := Tester{}
-	ts.Ge("SetEmissivity", e, 0)
-	ts.Le("SetEmissivity", e, 1)
+	vc := utils.NewValueChecker("CurrentCalc SetEmissivity")
+	vc.Ge("", e, 0)
+	vc.Le("", e, 1)
 
 	cc.emissivity = e
 
-	return ts.GetError()
+	return vc.Error()
 }
 
 func (cc *CurrentCalc) Formula() string {
@@ -173,10 +181,10 @@ func (cc *CurrentCalc) DeltaTemp() float64 {
 }
 
 func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
-	ts := Tester{}
-	ts.Gt("SetDeltaTemp", t, 0)
+	vc := utils.NewValueChecker("CurrentCalc SetDeltaTemp")
+	vc.Gt("", t, 0)
 
 	cc.deltaTemp = t
 
-	return ts.GetError()
+	return vc.Error()
 }
