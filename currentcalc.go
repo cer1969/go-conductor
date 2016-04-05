@@ -3,7 +3,7 @@
 package conductor
 
 import (
-	"bitbucket.org/cer1969/utils"
+	"bitbucket.org/tormundo/go.utils"
 	"math"
 )
 
