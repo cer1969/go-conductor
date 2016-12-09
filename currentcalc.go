@@ -3,8 +3,9 @@
 package conductor
 
 import (
-	"bitbucket.org/tormundo/go.utils"
 	"math"
+
+	"bitbucket.org/tormundo/go.utils"
 )
 
 //----------------------------------------------------------------------------------------
@@ -55,8 +56,8 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	vc := utils.NewValueChecker("CurrentCalc Current")
 	vc.Ge("ta", ta, TA_MIN)
 	vc.Le("ta", ta, TA_MAX)
-	vc.Ge("tc", tc, TA_MIN)
-	vc.Le("tc", tc, TA_MAX)
+	vc.Ge("tc", tc, TC_MIN)
+	vc.Le("tc", tc, TC_MAX)
 
 	q = math.NaN()
 	err = vc.Error()
