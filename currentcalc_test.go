@@ -3,23 +3,22 @@
 package conductor
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
 
-func getSetUp(t *testing.T) (Conductor, CurrentCalc) {
-	cu300 := Conductor{CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
-	cc, err := NewCurrentCalc(cu300)
-	if err != nil {
-		t.Error("SetUp error", err)
-	}
-	return cu300, cc
+func getConductor() Conductor {
+	return Conductor{CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
 }
 
-func TestDefaults(t *testing.T) {
-	cu300, cc := getSetUp(t)
+//----------------------------------------------------------------------------------------
 
-	if cc.Conductor != cu300 {
+func TestConstructorDefaults(t *testing.T) {
+	cond := getConductor()
+	cc, _ := NewCurrentCalc(cond) // No se verifica error porque los parámetros son correctos
+
+	if cc.Conductor != cond {
 		t.Error("!=")
 	}
 	if cc.Altitude() != 300 {
@@ -42,92 +41,130 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
-func TestErrorR25(t *testing.T) {
-	cu300, _ := getSetUp(t)
+func TestConstructorR25(t *testing.T) {
+	cond := getConductor()
 
-	cu300.R25 = 0.001
-	_, err := NewCurrentCalc(cu300)
+	cond.R25 = 0.001
+	cc, err := NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
 	}
+	if cc == nil {
+		t.Error("CurrentCalc expected")
+	}
 
-	cu300.R25 = 0.0
-	_, err = NewCurrentCalc(cu300)
+	cond.R25 = 0.0
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("R25=0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with R25=0")
+	}
 
-	cu300.R25 = -0.001
-	_, err = NewCurrentCalc(cu300)
+	cond.R25 = -0.001
+	_, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("R25<0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with R25<0")
+	}
 }
 
-func TestErrorDiameter(t *testing.T) {
-	cu300, _ := getSetUp(t)
+func TestConstructorDiameter(t *testing.T) {
+	cond := getConductor()
 
-	cu300.Diameter = 0.001
-	_, err := NewCurrentCalc(cu300)
+	cond.Diameter = 0.001
+	cc, err := NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
 	}
+	if cc == nil {
+		t.Error("CurrentCalc expected")
+	}
 
-	cu300.Diameter = 0.0
-	_, err = NewCurrentCalc(cu300)
+	cond.Diameter = 0.0
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Diameter=0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Diameter=0")
+	}
 
-	cu300.Diameter = -0.001
-	_, err = NewCurrentCalc(cu300)
+	cond.Diameter = -0.001
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Diameter<0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Diameter<0")
+	}
 }
 
-func TestErrorAlpha(t *testing.T) {
-	cu300, _ := getSetUp(t)
+func TestConstructurAlpha(t *testing.T) {
+	cond := getConductor()
 
-	cu300.Category.Alpha = 0.001
-	_, err := NewCurrentCalc(cu300)
+	cond.Category.Alpha = 0.001
+	cc, err := NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
 	}
+	if cc == nil {
+		t.Error("CurrentCalc expected")
+	}
 
-	cu300.Category.Alpha = 0.999
-	_, err = NewCurrentCalc(cu300)
+	cond.Category.Alpha = 0.999
+	cc, err = NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
 	}
+	if cc == nil {
+		t.Error("CurrentCalc expected")
+	}
 
-	cu300.Category.Alpha = 0.0
-	_, err = NewCurrentCalc(cu300)
+	cond.Category.Alpha = 0.0
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha=0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Alpha=0")
+	}
 
-	cu300.Category.Alpha = -0.001
-	_, err = NewCurrentCalc(cu300)
+	cond.Category.Alpha = -0.001
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha<0 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Alpha<0")
+	}
 
-	cu300.Category.Alpha = 1.0
-	_, err = NewCurrentCalc(cu300)
+	cond.Category.Alpha = 1.0
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha=1 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Alpha=1")
+	}
 
-	cu300.Category.Alpha = 1.001
-	_, err = NewCurrentCalc(cu300)
+	cond.Category.Alpha = 1.001
+	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha>1 error expected")
 	}
+	if cc != nil {
+		t.Error("nil expected with Alpha>1")
+	}
 }
 
+//----------------------------------------------------------------------------------------
+
 func TestPropAltitude(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetAltitude(150.0)
 	if err != nil {
@@ -150,7 +187,7 @@ func TestPropAltitude(t *testing.T) {
 }
 
 func TestPropAirVelocity(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetAirVelocity(2.0)
 	if err != nil {
@@ -173,7 +210,7 @@ func TestPropAirVelocity(t *testing.T) {
 }
 
 func TestPropSunEffect(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetSunEffect(0.5)
 	if err != nil {
@@ -204,7 +241,7 @@ func TestPropSunEffect(t *testing.T) {
 }
 
 func TestPropEmissivity(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetEmissivity(0.7)
 	if err != nil {
@@ -235,7 +272,7 @@ func TestPropEmissivity(t *testing.T) {
 }
 
 func TestPropFormula(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	cc.SetFormula(CF_IEEE)
 	if cc.formula != cc.Formula() {
@@ -261,7 +298,7 @@ func TestPropFormula(t *testing.T) {
 }
 
 func TestPropDeltaTemp(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetDeltaTemp(0.001)
 	if err != nil {
@@ -287,8 +324,10 @@ func TestPropDeltaTemp(t *testing.T) {
 	}
 }
 
+//----------------------------------------------------------------------------------------
+
 func TestMethodResistance(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	_, err := cc.Resistance(TC_MIN)
 	if err != nil {
@@ -309,7 +348,7 @@ func TestMethodResistance(t *testing.T) {
 }
 
 func TestMethodCurrent(t *testing.T) {
-	_, cc := getSetUp(t)
+	cc, _ := NewCurrentCalc(getConductor())
 
 	_, err := cc.Current(TA_MIN, 50)
 	if err != nil {
@@ -372,9 +411,20 @@ func TestMethodCurrent(t *testing.T) {
 
 }
 
+//----------------------------------------------------------------------------------------
+
+func ExampleResistance() {
+	cc, _ := NewCurrentCalc(getConductor())
+	r, _ := cc.Resistance(100)
+	fmt.Printf("%.4f", r)
+	// Output:
+	// 0.1121
+}
+
+//----------------------------------------------------------------------------------------
+
 func BenchmarkCurrentCalc(b *testing.B) {
-	cu300 := Conductor{CC_CU, "CU 300 MCM", 15.95, 152.00, 1.378, 6123.0, 0.12270, 0, ""}
-	cc, _ := NewCurrentCalc(cu300)
+	cc, _ := NewCurrentCalc(getConductor())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		cc.Current(25, 50)
