@@ -10,16 +10,18 @@ import (
 
 //----------------------------------------------------------------------------------------
 
-func NewCurrentCalc(cond Conductor) (cc CurrentCalc, err error) {
-	vc := values.Checker("NewCurrentCalc cond")
+func NewCurrentCalc(cond Conductor) (*CurrentCalc, error) {
+	vc := values.Checker("NewCurrentCalc")
 	vc.Val("R25", cond.R25).Gt(0.0)
 	vc.Val("Diameter", cond.Diameter).Gt(0.0)
 	vc.Val("Alpha", cond.Alpha).Gt(0.0).Lt(1.0)
 
-	err = vc.Error()
-	cc = CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
+	err := vc.Error()
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}, nil
 }
 
 //----------------------------------------------------------------------------------------
@@ -34,20 +36,16 @@ type CurrentCalc struct {
 	deltaTemp   float64 // Temperature difference to determine equality [°C] = 0.0001
 }
 
-func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
+func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
 	vc := values.Checker("CurrentCalc Resistance")
 	vc.Val("tc", tc).Ge(TC_MIN).Le(TC_MAX)
 
-	r = math.NaN()
-	err = vc.Error()
-
+	err := vc.Error()
 	if err != nil {
-		return
+		return math.NaN(), err
 	}
 
-	r = cc.R25 * (1 + cc.Alpha*(tc-25.0))
-
-	return
+	return cc.R25 * (1 + cc.Alpha*(tc-25.0)), nil
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
@@ -106,6 +104,54 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 		q = math.Sqrt((Qc + Qr - Qs) / Rc)
 	}
 	return
+}
+
+func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
+	vc := values.Checker("CurrentCalc Tc")
+	vc.Val("ta", ta).Ge(TA_MIN).Le(TA_MAX)
+
+	tc = math.NaN()
+	err = vc.Error()
+	if err != nil {
+		return
+	}
+
+	icmax, err := cc.Current(ta, TC_MAX)
+	if err != nil {
+		return
+	}
+
+	vc.Val("ic", ic).Ge(0).Le(icmax) // Asegura valor de ta <= tc <= TC_MAX
+	err = vc.Error()
+	if err != nil {
+		return
+	}
+
+	var tcmin, tcmax, tcmed, icmed float64
+	tcmin = ta
+	tcmax = TC_MAX
+	cuenta := 0
+
+	for (tcmax - tcmin) > cc.deltaTemp {
+		tcmed = 0.5 * (tcmin + tcmax)
+		icmed, err = cc.Current(ta, tcmed)
+		if err != nil {
+			return
+		}
+		if icmed > ic {
+			tcmax = tcmed
+		} else {
+			tcmin = tcmed
+		}
+		cuenta += 1
+		if cuenta > ITER_MAX {
+			err = values.NewValError("CurrentCalc Tc ITERA MAX", 1)
+			return
+		}
+	}
+	tc = tcmed
+	return
+
 }
 
 func (cc *CurrentCalc) Altitude() float64 {

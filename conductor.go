@@ -5,12 +5,12 @@ package conductor
 
 // Constants values
 const (
-	TA_MIN      = -90       // Minumum value for ambient temperature (World lowest -82.2°C Vostok Antartica 21/07/1983)
-	TA_MAX      = 90        // Maximum value for ambient temperature (World highest 58.2°C Libia 13/09/1922)
-	TC_MIN      = -90       // Minumum value for conductor temperature
-	TC_MAX      = 2000      // Maximum value for conductor temperature (Copper melt at 1083 °C)
+	TA_MIN      = -90.0     // Minumum value for ambient temperature (World lowest -82.2°C Vostok Antartica 21/07/1983)
+	TA_MAX      = 90.0      // Maximum value for ambient temperature (World highest 58.2°C Libia 13/09/1922)
+	TC_MIN      = -90.0     // Minumum value for conductor temperature
+	TC_MAX      = 2000.0    // Maximum value for conductor temperature (Copper melt at 1083 °C)
 	ITER_MAX    = 20000     // Maximun iterations number
-	TENSION_MAX = 50000     // Maximun condutor tension
+	TENSION_MAX = 50000.0   // Maximun condutor tension
 	CF_CLASSIC  = "CLASSIC" // CLASSIC Formula
 	CF_IEEE     = "IEEE"    // IEEE Formula
 )
