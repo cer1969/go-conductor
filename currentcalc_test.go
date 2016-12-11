@@ -11,7 +11,7 @@ func getSetUp(t *testing.T) (Conductor, CurrentCalc) {
 	cu300 := Conductor{CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
 	cc, err := NewCurrentCalc(cu300)
 	if err != nil {
-		t.Error("SetUp error")
+		t.Error("SetUp error", err)
 	}
 	return cu300, cc
 }

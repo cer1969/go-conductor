@@ -5,17 +5,16 @@ package conductor
 import (
 	"math"
 
-	"bitbucket.org/tormundo/go.utils"
+	"bitbucket.org/tormundo/go.utils/values"
 )
 
 //----------------------------------------------------------------------------------------
 
 func NewCurrentCalc(cond Conductor) (cc CurrentCalc, err error) {
-	vc := utils.NewValueChecker("NewCurrentCalc cond")
-	vc.Gt("R25", cond.R25, 0)
-	vc.Gt("Diameter", cond.Diameter, 0)
-	vc.Gt("Alpha", cond.Alpha, 0)
-	vc.Lt("Alpha", cond.Alpha, 1)
+	vc := values.Checker("NewCurrentCalc cond")
+	vc.Val("R25", cond.R25).Gt(0.0)
+	vc.Val("Diameter", cond.Diameter).Gt(0.0)
+	vc.Val("Alpha", cond.Alpha).Gt(0.0).Lt(1.0)
 
 	err = vc.Error()
 	cc = CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}
@@ -36,9 +35,8 @@ type CurrentCalc struct {
 }
 
 func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
-	vc := utils.NewValueChecker("CurrentCalc Resistance")
-	vc.Ge("tc", tc, TC_MIN)
-	vc.Le("tc", tc, TC_MAX)
+	vc := values.Checker("CurrentCalc Resistance")
+	vc.Val("tc", tc).Ge(TC_MIN).Le(TC_MAX)
 
 	r = math.NaN()
 	err = vc.Error()
@@ -53,11 +51,9 @@ func (cc *CurrentCalc) Resistance(tc float64) (r float64, err error) {
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
-	vc := utils.NewValueChecker("CurrentCalc Current")
-	vc.Ge("ta", ta, TA_MIN)
-	vc.Le("ta", ta, TA_MAX)
-	vc.Ge("tc", tc, TC_MIN)
-	vc.Le("tc", tc, TC_MAX)
+	vc := values.Checker("CurrentCalc Current")
+	vc.Val("ta", ta).Ge(TA_MIN).Le(TA_MAX)
+	vc.Val("tc", tc).Ge(TC_MIN).Le(TC_MAX)
 
 	q = math.NaN()
 	err = vc.Error()
@@ -117,8 +113,8 @@ func (cc *CurrentCalc) Altitude() float64 {
 }
 
 func (cc *CurrentCalc) SetAltitude(h float64) error {
-	vc := utils.NewValueChecker("CurrentCalc SetAltitude")
-	vc.Ge("", h, 0)
+	vc := values.Checker("CurrentCalc SetAltitude")
+	vc.Val("h", h).Ge(0)
 
 	cc.altitude = h
 
@@ -130,8 +126,8 @@ func (cc *CurrentCalc) AirVelocity() float64 {
 }
 
 func (cc *CurrentCalc) SetAirVelocity(v float64) error {
-	vc := utils.NewValueChecker("CurrentCalc SetAirVelocity")
-	vc.Ge("", v, 0)
+	vc := values.Checker("CurrentCalc SetAirVelocity")
+	vc.Val("v", v).Ge(0)
 
 	cc.airVelocity = v
 
@@ -143,9 +139,8 @@ func (cc *CurrentCalc) SunEffect() float64 {
 }
 
 func (cc *CurrentCalc) SetSunEffect(se float64) error {
-	vc := utils.NewValueChecker("CurrentCalc SetSunEffect")
-	vc.Ge("", se, 0)
-	vc.Le("", se, 1)
+	vc := values.Checker("CurrentCalc SetSunEffect")
+	vc.Val("se", se).Ge(0).Le(1)
 
 	cc.sunEffect = se
 
@@ -157,9 +152,8 @@ func (cc *CurrentCalc) Emissivity() float64 {
 }
 
 func (cc *CurrentCalc) SetEmissivity(e float64) error {
-	vc := utils.NewValueChecker("CurrentCalc SetEmissivity")
-	vc.Ge("", e, 0)
-	vc.Le("", e, 1)
+	vc := values.Checker("CurrentCalc SetEmissivity")
+	vc.Val("e", e).Ge(0).Le(1)
 
 	cc.emissivity = e
 
@@ -182,8 +176,8 @@ func (cc *CurrentCalc) DeltaTemp() float64 {
 }
 
 func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
-	vc := utils.NewValueChecker("CurrentCalc SetDeltaTemp")
-	vc.Gt("", t, 0)
+	vc := values.Checker("CurrentCalc SetDeltaTemp")
+	vc.Val("t", t).Gt(0)
 
 	cc.deltaTemp = t
 
