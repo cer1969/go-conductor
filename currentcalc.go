@@ -10,25 +10,32 @@ import (
 
 //----------------------------------------------------------------------------------------
 
-func NewCurrentCalc(cond Conductor) (*CurrentCalc, error) {
+// NewCurrentCalc Retorna objeto CurrentCalc para cálculo de corriente en conductores
+// c Conductor: Conductor sobre el que se realizarán los cálculos
+//     Solo se consideran los parámetros R25, Diameter y Alpha que se copian al CurrentCal
+//     Los camios posteriores al Conductor no se reflejan en el CurrentCal. Lo que corresponde
+//     es crear una nueva instancia con un nuevo Conductor.
+func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
 	vc := checker.New("NewCurrentCalc")
-	vc.Ck("R25", cond.R25).Gt(0.0)
-	vc.Ck("Diameter", cond.Diameter).Gt(0.0)
-	vc.Ck("Alpha", cond.Alpha).Gt(0.0).Lt(1.0)
+	vc.Ck("R25", c.R25).Gt(0.0)
+	vc.Ck("Diameter", c.Diameter).Gt(0.0)
+	vc.Ck("Alpha", c.Alpha).Gt(0.0).Lt(1.0)
 
 	err := vc.Error()
 	if err != nil {
 		return nil, err
 	}
 
-	return &CurrentCalc{cond, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}, nil
+	//TODO : Revisar valor inicial de deltaTemp. 0.0001 parece muy bajo
+	return &CurrentCalc{c.R25, c.Diameter, c.Alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}, nil
 }
 
 //----------------------------------------------------------------------------------------
 
 type CurrentCalc struct {
-	Conductor // Conductor instance
-	//cond        Conductor // Conductor instance TODO: IMPLEMENTAR PARA EVITAR ACCESO DIRECTO A CONDUCTOR
+	r25         float64 // Conductor.R25
+	diameter    float64 // Conductor.Diameter
+	alpha       float64 // Conductor Alpha
 	altitude    float64 // Altitude [m] = 300.0
 	airVelocity float64 // Velocity of air stream [ft/seg] =   2.0
 	sunEffect   float64 // Sun effect factor (0 to 1) = 1.0
@@ -46,17 +53,16 @@ func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
 		return math.NaN(), err
 	}
 
-	return cc.R25 * (1 + cc.Alpha*(tc-25.0)), nil
+	return cc.r25 * (1 + cc.alpha*(tc-25.0)), nil
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
+	q = math.NaN()
+
 	vc := checker.New("CurrentCalc Current")
 	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
 	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
-
-	q = math.NaN()
 	err = vc.Error()
-
 	if err != nil {
 		return
 	}
@@ -66,9 +72,9 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 		return
 	}
 
-	D := cc.Diameter / 25.4                                                 // Diámetro en pulgadas
-	Pb := math.Pow(10, (1.880813592 - cc.Altitude()/18336.0))               // Presión barométrica en cmHg
-	V := cc.AirVelocity() * 3600                                            // Vel. viento en pies/hora
+	D := cc.diameter / 25.4                                                 // Diámetro en pulgadas
+	Pb := math.Pow(10, (1.880813592 - cc.altitude/18336.0))                 // Presión barométrica en cmHg
+	V := cc.airVelocity * 3600                                              // Vel. viento en pies/hora
 	res, _ := cc.Resistance(tc)                                             // No necesito verificar error porque el valor de tc ya se verificó
 	Rc := res * 0.0003048                                                   // Resistencia en ohm/pies
 	Tm := 0.5 * (tc + ta)                                                   // Temperatura media
@@ -81,7 +87,7 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 		factor := D * Rf * V / Uf
 		Qc1 := 0.1695 * Kf * (tc - ta) * math.Pow(factor, 0.6)
 		Qc2 := Kf * (tc - ta) * (1.01 + 0.371*math.Pow(factor, 0.52))
-		if cc.Formula() == CF_IEEE {
+		if cc.formula == CF_IEEE {
 			// IEEE criteria
 			Qc = math.Max(Qc, Qc1)
 			Qc = math.Max(Qc, Qc2)
@@ -96,8 +102,8 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	}
 	LK := math.Pow((tc+273)/100, 4)
 	MK := math.Pow((ta+273)/100, 4)
-	Qr := 0.138 * D * cc.Emissivity() * (LK - MK)
-	Qs := 3.87 * D * cc.SunEffect()
+	Qr := 0.138 * D * cc.emissivity * (LK - MK)
+	Qs := 3.87 * D * cc.sunEffect
 
 	if (Qc + Qr) < Qs {
 		q = 0.0
@@ -108,19 +114,16 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 }
 
 func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
+	tc = math.NaN()
+
 	vc := checker.New("CurrentCalc Tc")
 	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
-
-	tc = math.NaN()
 	err = vc.Error()
 	if err != nil {
 		return
 	}
 
-	icmax, err := cc.Current(ta, TC_MAX)
-	if err != nil {
-		return
-	}
+	icmax, _ := cc.Current(ta, TC_MAX) // No debe haber error: ta está verificado
 
 	vc.Ck("ic", ic).Ge(0).Le(icmax) // Asegura valor de ta <= tc <= TC_MAX
 	err = vc.Error()
@@ -129,14 +132,16 @@ func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
 	}
 
 	var tcmin, tcmax, tcmed, icmed float64
+	var err2 error
 	tcmin = ta
 	tcmax = TC_MAX
 	cuenta := 0
 
 	for (tcmax - tcmin) > cc.deltaTemp {
 		tcmed = 0.5 * (tcmin + tcmax)
-		icmed, err = cc.Current(ta, tcmed)
-		if err != nil {
+		icmed, err2 = cc.Current(ta, tcmed)
+		if err2 != nil {
+			vc.Append(err2.Error())
 			return
 		}
 		if icmed > ic {
@@ -152,7 +157,58 @@ func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
 	}
 	tc = tcmed
 	return
+}
 
+func (cc *CurrentCalc) Ta(tc float64, ic float64) (ta float64, err error) {
+	ta = math.NaN()
+
+	vc := checker.New("CurrentCalc Ta")
+	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
+	err = vc.Error()
+	if err != nil {
+		return
+	}
+
+	imin, _ := cc.Current(TA_MAX, tc) // No debe haber error: tc está verificado
+	imax, _ := cc.Current(TA_MIN, tc) // No debe haber error: tc está verificado
+	vc.Ck("ic", ic).Ge(imin).Le(imax) // Asegura valor de TA_MIN <= ta <= TA_MAX
+	err = vc.Error()
+	if err != nil {
+		return
+	}
+
+	var tamin, tamax, tamed, icmed float64
+	var err2 error
+	tamin = TA_MIN
+	tamax = math.Min(TA_MAX, tc)
+
+	if tamin > tamax {
+		ta = 0.0
+		return
+	}
+
+	cuenta := 0
+
+	for (tamax - tamin) > cc.deltaTemp {
+		tamed = 0.5 * (tamin + tamax)
+		icmed, err2 = cc.Current(tamed, tc)
+		if err2 != nil {
+			vc.Append(err2.Error())
+			return
+		}
+		if icmed > ic {
+			tamin = tamed
+		} else {
+			tamax = tamed
+		}
+		cuenta += 1
+		if cuenta > ITER_MAX {
+			vc.Append("CurrentCalc Ta ITERA MAX exeeded")
+			return
+		}
+	}
+	ta = tamed
+	return
 }
 
 func (cc *CurrentCalc) Altitude() float64 {

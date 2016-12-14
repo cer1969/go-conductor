@@ -18,7 +18,13 @@ func TestConstructorDefaults(t *testing.T) {
 	cond := getConductor()
 	cc, _ := NewCurrentCalc(cond) // No se verifica error porque los parámetros son correctos
 
-	if cc.Conductor != cond {
+	if cc.r25 != cond.R25 {
+		t.Error("!=")
+	}
+	if cc.diameter != cond.Diameter {
+		t.Error("!=")
+	}
+	if cc.alpha != cond.Alpha {
 		t.Error("!=")
 	}
 	if cc.Altitude() != 300 {
@@ -411,6 +417,114 @@ func TestMethodCurrent(t *testing.T) {
 
 }
 
+func TestMethodTc(t *testing.T) {
+	cc, _ := NewCurrentCalc(getConductor())
+
+	// Verifica rangos de entrada para ta
+	cur, _ := cc.Current(TA_MIN, TC_MAX)
+	tc, err := cc.Tc(TA_MIN, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	tc, err = cc.Tc(TA_MIN-0.0001, cur)
+	if err == nil {
+		t.Error("ta < TA_MIN error expected")
+	}
+	cur, _ = cc.Current(TA_MAX, TC_MAX)
+	tc, err = cc.Tc(TA_MAX, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	tc, err = cc.Tc(TA_MAX+0.0001, cur)
+	if err == nil {
+		t.Error("ta > TA_MAX error expected")
+	}
+
+	// Verifica rangos de entrada para ic
+	tc, err = cc.Tc(30, -0.0001)
+	if err == nil {
+		t.Error("ic < 0 error expected")
+	}
+	cur, _ = cc.Current(30, TC_MAX)
+	tc, err = cc.Tc(30, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	tc, err = cc.Tc(30, cur+0.001)
+	if err == nil {
+		t.Error("ic > icmax error expected")
+	}
+
+	// Verifica que los cálculos de Tc() sean coherentes Current()
+	cur, _ = cc.Current(25, 50)
+	tc, _ = cc.Tc(25, cur)
+	if math.Abs(tc-50) > cc.deltaTemp {
+		t.Errorf("Expected difference < %f [%f received]", cc.deltaTemp, math.Abs(tc-50))
+	}
+	cur, _ = cc.Current(35, 65)
+	tc, _ = cc.Tc(35, cur)
+	if math.Abs(tc-65) > cc.deltaTemp {
+		t.Errorf("Expected difference < %f [%f received]", cc.deltaTemp, math.Abs(tc-50))
+	}
+
+}
+
+func TestMethodTa(t *testing.T) {
+	cc, _ := NewCurrentCalc(getConductor())
+
+	// Verifica rangos de entrada para tc
+	ta, err := cc.Ta(TC_MIN, 0)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	ta, err = cc.Ta(TC_MIN-0.0001, 0)
+	if err == nil {
+		t.Error("tc < TC_MIN error expected")
+	}
+	cur, _ := cc.Current(TA_MIN, TC_MAX)
+	ta, err = cc.Ta(TC_MAX, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	ta, err = cc.Ta(TC_MAX+0.0001, cur)
+	if err == nil {
+		t.Error("tc > TC_MAX error expected")
+	}
+
+	// Verifica rangos de entrada para ic
+	cur, _ = cc.Current(TA_MAX, 100) // ic min
+	ta, err = cc.Ta(100, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	ta, err = cc.Ta(100, cur-0.0001)
+	if err == nil {
+		t.Error("ic < Icmin error expected")
+	}
+	cur, _ = cc.Current(TA_MIN, 100) // ic max
+	ta, err = cc.Ta(100, cur)
+	if err != nil {
+		t.Errorf("Error not expected: %v", err)
+	}
+	ta, err = cc.Ta(100, cur+0.0001)
+	if err == nil {
+		t.Error("ic > Icmax error expected")
+	}
+
+	// Verifica que los cálculos de Ta() sean coherentes Current()
+	cur, _ = cc.Current(25, 50)
+	ta, _ = cc.Ta(50, cur)
+	if math.Abs(ta-25) > cc.deltaTemp {
+		t.Errorf("Expected difference < %f [%f received]", cc.deltaTemp, math.Abs(ta-50))
+	}
+	cur, _ = cc.Current(35, 65)
+	ta, _ = cc.Ta(65, cur)
+	if math.Abs(ta-35) > cc.deltaTemp {
+		t.Errorf("Expected difference < %f [%f received]", cc.deltaTemp, math.Abs(ta-50))
+	}
+
+}
+
 //----------------------------------------------------------------------------------------
 
 func ExampleResistance() {
@@ -421,12 +535,62 @@ func ExampleResistance() {
 	// 0.1121
 }
 
+func ExampleCurrent() {
+	cc, _ := NewCurrentCalc(getConductor())
+	cur, _ := cc.Current(25, 50)
+	fmt.Printf("%.4f", cur)
+	// Output:
+	// 517.6842
+}
+
+func ExampleTc() {
+	cc, _ := NewCurrentCalc(getConductor())
+	tc, _ := cc.Tc(25, 100)
+	fmt.Printf("%.4f", tc)
+	// Output:
+	// 33.8651
+}
+
+func ExampleTa() {
+	cc, _ := NewCurrentCalc(getConductor())
+	ta, _ := cc.Ta(35, 100)
+	fmt.Printf("%.4f", ta)
+	// Output:
+	// 26.1479
+}
+
 //----------------------------------------------------------------------------------------
 
-func BenchmarkCurrentCalc(b *testing.B) {
+func BenchmarkResistance(b *testing.B) {
+	cc, _ := NewCurrentCalc(getConductor())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cc.Resistance(50)
+	}
+}
+
+func BenchmarkCurrent(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		cc.Current(25, 50)
+	}
+}
+
+func BenchmarkTc(b *testing.B) {
+	cc, _ := NewCurrentCalc(getConductor())
+	//cc.SetDeltaTemp(0.0001)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cc.Tc(25, 100)
+	}
+}
+
+func BenchmarkTa(b *testing.B) {
+	cc, _ := NewCurrentCalc(getConductor())
+	//cc.SetDeltaTemp(0.0001)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cc.Ta(35, 100)
 	}
 }
