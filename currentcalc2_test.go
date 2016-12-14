@@ -252,14 +252,6 @@ func ExampleResistance2() {
 	// 0.0970
 }
 
-func BenchmarkResistance(b *testing.B) {
-	cc := NewCurrentCalc2(getConductor2())
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		cc.Resistance(50)
-	}
-}
-
 func ExampleCheckR25() {
 	cc := NewCurrentCalc2(getConductor2())
 	fmt.Printf("%v", cc.CheckR25())
