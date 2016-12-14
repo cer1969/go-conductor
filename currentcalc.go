@@ -5,16 +5,16 @@ package conductor
 import (
 	"math"
 
-	"bitbucket.org/tormundo/go.utils/values"
+	"bitbucket.org/tormundo/go.value/checker"
 )
 
 //----------------------------------------------------------------------------------------
 
 func NewCurrentCalc(cond Conductor) (*CurrentCalc, error) {
-	vc := values.Checker("NewCurrentCalc")
-	vc.Val("R25", cond.R25).Gt(0.0)
-	vc.Val("Diameter", cond.Diameter).Gt(0.0)
-	vc.Val("Alpha", cond.Alpha).Gt(0.0).Lt(1.0)
+	vc := checker.New("NewCurrentCalc")
+	vc.Ck("R25", cond.R25).Gt(0.0)
+	vc.Ck("Diameter", cond.Diameter).Gt(0.0)
+	vc.Ck("Alpha", cond.Alpha).Gt(0.0).Lt(1.0)
 
 	err := vc.Error()
 	if err != nil {
@@ -27,7 +27,8 @@ func NewCurrentCalc(cond Conductor) (*CurrentCalc, error) {
 //----------------------------------------------------------------------------------------
 
 type CurrentCalc struct {
-	Conductor           // Conductor instance
+	Conductor // Conductor instance
+	//cond        Conductor // Conductor instance TODO: IMPLEMENTAR PARA EVITAR ACCESO DIRECTO A CONDUCTOR
 	altitude    float64 // Altitude [m] = 300.0
 	airVelocity float64 // Velocity of air stream [ft/seg] =   2.0
 	sunEffect   float64 // Sun effect factor (0 to 1) = 1.0
@@ -37,8 +38,8 @@ type CurrentCalc struct {
 }
 
 func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
-	vc := values.Checker("CurrentCalc Resistance")
-	vc.Val("tc", tc).Ge(TC_MIN).Le(TC_MAX)
+	vc := checker.New("CurrentCalc Resistance")
+	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
 
 	err := vc.Error()
 	if err != nil {
@@ -49,9 +50,9 @@ func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
-	vc := values.Checker("CurrentCalc Current")
-	vc.Val("ta", ta).Ge(TA_MIN).Le(TA_MAX)
-	vc.Val("tc", tc).Ge(TC_MIN).Le(TC_MAX)
+	vc := checker.New("CurrentCalc Current")
+	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
+	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
 
 	q = math.NaN()
 	err = vc.Error()
@@ -107,8 +108,8 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 }
 
 func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
-	vc := values.Checker("CurrentCalc Tc")
-	vc.Val("ta", ta).Ge(TA_MIN).Le(TA_MAX)
+	vc := checker.New("CurrentCalc Tc")
+	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
 
 	tc = math.NaN()
 	err = vc.Error()
@@ -121,7 +122,7 @@ func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
 		return
 	}
 
-	vc.Val("ic", ic).Ge(0).Le(icmax) // Asegura valor de ta <= tc <= TC_MAX
+	vc.Ck("ic", ic).Ge(0).Le(icmax) // Asegura valor de ta <= tc <= TC_MAX
 	err = vc.Error()
 	if err != nil {
 		return
@@ -145,7 +146,7 @@ func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
 		}
 		cuenta += 1
 		if cuenta > ITER_MAX {
-			err = values.NewValError("CurrentCalc Tc ITERA MAX", 1)
+			vc.Append("CurrentCalc Tc ITERA MAX exeeded")
 			return
 		}
 	}
@@ -159,8 +160,8 @@ func (cc *CurrentCalc) Altitude() float64 {
 }
 
 func (cc *CurrentCalc) SetAltitude(h float64) error {
-	vc := values.Checker("CurrentCalc SetAltitude")
-	vc.Val("h", h).Ge(0)
+	vc := checker.New("CurrentCalc SetAltitude")
+	vc.Ck("h", h).Ge(0)
 
 	cc.altitude = h
 
@@ -172,8 +173,8 @@ func (cc *CurrentCalc) AirVelocity() float64 {
 }
 
 func (cc *CurrentCalc) SetAirVelocity(v float64) error {
-	vc := values.Checker("CurrentCalc SetAirVelocity")
-	vc.Val("v", v).Ge(0)
+	vc := checker.New("CurrentCalc SetAirVelocity")
+	vc.Ck("v", v).Ge(0)
 
 	cc.airVelocity = v
 
@@ -185,8 +186,8 @@ func (cc *CurrentCalc) SunEffect() float64 {
 }
 
 func (cc *CurrentCalc) SetSunEffect(se float64) error {
-	vc := values.Checker("CurrentCalc SetSunEffect")
-	vc.Val("se", se).Ge(0).Le(1)
+	vc := checker.New("CurrentCalc SetSunEffect")
+	vc.Ck("se", se).Ge(0).Le(1)
 
 	cc.sunEffect = se
 
@@ -198,8 +199,8 @@ func (cc *CurrentCalc) Emissivity() float64 {
 }
 
 func (cc *CurrentCalc) SetEmissivity(e float64) error {
-	vc := values.Checker("CurrentCalc SetEmissivity")
-	vc.Val("e", e).Ge(0).Le(1)
+	vc := checker.New("CurrentCalc SetEmissivity")
+	vc.Ck("e", e).Ge(0).Le(1)
 
 	cc.emissivity = e
 
@@ -222,8 +223,8 @@ func (cc *CurrentCalc) DeltaTemp() float64 {
 }
 
 func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
-	vc := values.Checker("CurrentCalc SetDeltaTemp")
-	vc.Val("t", t).Gt(0)
+	vc := checker.New("CurrentCalc SetDeltaTemp")
+	vc.Ck("t", t).Gt(0)
 
 	cc.deltaTemp = t
 
