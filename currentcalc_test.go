@@ -42,7 +42,7 @@ func TestConstructorDefaults(t *testing.T) {
 	if cc.Formula() != CF_IEEE {
 		t.Error("!=")
 	}
-	if cc.DeltaTemp() != 0.0001 {
+	if cc.DeltaTemp() != 0.01 {
 		t.Error("!=")
 	}
 }
@@ -537,25 +537,25 @@ func ExampleResistance() {
 func ExampleCurrent() {
 	cc, _ := NewCurrentCalc(getConductor())
 	cur, _ := cc.Current(25, 50)
-	fmt.Printf("%.4f", cur)
+	fmt.Printf("%.2f", cur)
 	// Output:
-	// 517.6842
+	// 517.68
 }
 
 func ExampleTc() {
 	cc, _ := NewCurrentCalc(getConductor())
 	tc, _ := cc.Tc(25, 100)
-	fmt.Printf("%.4f", tc)
+	fmt.Printf("%.2f", tc)
 	// Output:
-	// 33.8651
+	// 33.87
 }
 
 func ExampleTa() {
 	cc, _ := NewCurrentCalc(getConductor())
 	ta, _ := cc.Ta(35, 100)
-	fmt.Printf("%.4f", ta)
+	fmt.Printf("%.2f", ta)
 	// Output:
-	// 26.1479
+	// 26.14
 }
 
 //----------------------------------------------------------------------------------------
