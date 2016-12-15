@@ -10,11 +10,11 @@ import (
 
 //----------------------------------------------------------------------------------------
 
-// NewCurrentCalc Retorna objeto CurrentCalc para cálculo de corriente en conductores
-// c Conductor: Conductor sobre el que se realizarán los cálculos
-//     Solo se consideran los parámetros R25, Diameter y Alpha que se copian al CurrentCal
-//     Los camios posteriores al Conductor no se reflejan en el CurrentCal. Lo que corresponde
-//     es crear una nueva instancia con un nuevo Conductor.
+// NewCurrentCalc Returns CurrentCalc object
+// c Conductor: Conductor instance
+//
+// Conductor fields R25, Diameter and Alpha are copied to CurrentCal.
+// Subsequent changes in the Conductor will not be reflected in CurrentCalc.
 func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
 	vc := checker.New("NewCurrentCalc")
 	vc.Ck("R25", c.R25).Gt(0.0)
@@ -27,11 +27,12 @@ func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
 	}
 
 	//TODO : Revisar valor inicial de deltaTemp. 0.0001 parece muy bajo
-	return &CurrentCalc{c.R25, c.Diameter, c.Alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.0001}, nil
+	return &CurrentCalc{c.R25, c.Diameter, c.Alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
 //----------------------------------------------------------------------------------------
 
+// CurrentCalc Object to calculate conductor current and temperatures.
 type CurrentCalc struct {
 	r25         float64 // Conductor.R25
 	diameter    float64 // Conductor.Diameter

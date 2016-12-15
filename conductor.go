@@ -15,6 +15,7 @@ const (
 	CF_IEEE     = "IEEE"    // IEEE Formula
 )
 
+// Category Container for category characteristics. Groups similar conductors.
 type Category struct {
 	Name    string  // Name of conductor category
 	Modelas float64 // Modulus of elasticity [kg/mm2]
@@ -24,6 +25,7 @@ type Category struct {
 	Id      string  // Optional database id
 }
 
+// Conductor Container for conductor characteristics
 type Conductor struct {
 	Category         // Category
 	Name     string  // Name of conductor
