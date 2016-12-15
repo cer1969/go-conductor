@@ -184,7 +184,7 @@ func TestPropAltitude(t *testing.T) {
 	}
 	err = cc.SetAltitude(0.0)
 	if err != nil {
-		t.Error("Altitud=0 error not expected")
+		t.Errorf("Altitud=0 error not expected: %v", err)
 	}
 	err = cc.SetAltitude(-0.001)
 	if err == nil {
@@ -207,7 +207,7 @@ func TestPropAirVelocity(t *testing.T) {
 	}
 	err = cc.SetAirVelocity(0.0)
 	if err != nil {
-		t.Error("AirVelocity=0 error not expected")
+		t.Errorf("AirVelocity=0 error not expected: %v", err)
 	}
 	err = cc.SetAirVelocity(-0.001)
 	if err == nil {
@@ -230,11 +230,11 @@ func TestPropSunEffect(t *testing.T) {
 	}
 	err = cc.SetSunEffect(0.0)
 	if err != nil {
-		t.Error("SunEffect=0 error not expected")
+		t.Errorf("SunEffect=0 error not expected: %v", err)
 	}
 	err = cc.SetSunEffect(1.0)
 	if err != nil {
-		t.Error("SunEffect=1 error not expected")
+		t.Errorf("SunEffect=1 error not expected: %v", err)
 	}
 	err = cc.SetSunEffect(-0.001)
 	if err == nil {
@@ -261,11 +261,11 @@ func TestPropEmissivity(t *testing.T) {
 	}
 	err = cc.SetEmissivity(0.0)
 	if err != nil {
-		t.Error("Emissivity=0 error not expected")
+		t.Errorf("Emissivity=0 error not expected: %v", err)
 	}
 	err = cc.SetEmissivity(1.0)
 	if err != nil {
-		t.Error("Emissivity=1 error not expected")
+		t.Errorf("Emissivity=1 error not expected: %v", err)
 	}
 	err = cc.SetEmissivity(-0.001)
 	if err == nil {
@@ -318,7 +318,7 @@ func TestPropDeltaTemp(t *testing.T) {
 	}
 	err = cc.SetDeltaTemp(0.0001)
 	if err != nil {
-		t.Error("DeltaTemp>0 error not expected")
+		t.Errorf("DeltaTemp>0 error not expected: %v", err)
 	}
 	err = cc.SetDeltaTemp(-0.0001)
 	if err == nil {
@@ -337,11 +337,11 @@ func TestMethodResistance(t *testing.T) {
 
 	_, err := cc.Resistance(TC_MIN)
 	if err != nil {
-		t.Error("tc >= TC_MIN error not expected")
+		t.Errorf("tc >= TC_MIN error not expected: %v", err)
 	}
 	_, err = cc.Resistance(TC_MAX)
 	if err != nil {
-		t.Error("tc <= TC_MAX error not expected")
+		t.Errorf("tc <= TC_MAX error not expected: %v", err)
 	}
 	_, err = cc.Resistance(TC_MIN - 0.001)
 	if err == nil {
@@ -358,25 +358,25 @@ func TestMethodCurrent(t *testing.T) {
 
 	_, err := cc.Current(TA_MIN, 50)
 	if err != nil {
-		t.Error("ta >= TA_MIN error not expected")
+		t.Errorf("ta >= TA_MIN error not expected: %v", err)
 	}
 	c, err := cc.Current(TA_MAX, 50)
 	if err != nil {
-		t.Error("ta <= TA_MAX error not expected")
+		t.Errorf("ta <= TA_MAX error not expected: %v", err)
 	}
 	if c < 0 {
 		t.Error("Current >=0 expected")
 	}
 	c, err = cc.Current(25, TC_MIN)
 	if err != nil {
-		t.Error("tc >= TC_MIN error not expected")
+		t.Errorf("tc >= TC_MIN error not expected: %v", err)
 	}
 	if c < 0 {
 		t.Error("Current >=0 expected")
 	}
 	c, err = cc.Current(25, TC_MAX)
 	if err != nil {
-		t.Error("tc <= TC_MAX error not expected ")
+		t.Errorf("tc <= TC_MAX error not expected: %v", err)
 	}
 
 	_, err = cc.Current(TA_MIN-0.001, 50)
@@ -408,13 +408,12 @@ func TestMethodCurrent(t *testing.T) {
 	cc.SetFormula(CF_CLASSIC)
 	c, err = cc.Current(25, 50)
 	if math.Abs(c-517.7) > 1 {
-		t.Error("Current 517.7 expected got ", c)
+		t.Errorf("Current 517.7 expected got: %f", c)
 	}
 	c, err = cc.Current(30, 60)
 	if math.Abs(c-585.4) > 1 {
-		t.Error("Current 585.4 expected got ", c)
+		t.Errorf("Current 585.4 expected got: %f", c)
 	}
-
 }
 
 func TestMethodTc(t *testing.T) {
