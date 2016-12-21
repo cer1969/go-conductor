@@ -26,7 +26,6 @@ func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
 		return nil, err
 	}
 
-	//TODO : Revisar valor inicial de deltaTemp. 0.0001 parece muy bajo
 	return &CurrentCalc{c.R25, c.Diameter, c.Alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
