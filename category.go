@@ -19,6 +19,20 @@ type CategoryArgs struct {
 	Id      string
 }
 
+func (ca *CategoryArgs) Get() (*Category, error) {
+	vc := checker.New("CategoryArgs Get")
+	cat, err1 := NewCategory(ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id)
+	if err1 != nil {
+		if ckerr, ok := vc.Error().(*checker.CheckError); ok {
+			vc.AppendCheckError(ckerr)
+		} else {
+			vc.Append("Internal error")
+		}
+		return nil, vc.Error()
+	}
+	return cat, nil
+}
+
 //----------------------------------------------------------------------------------------
 
 // NewCategory Returns Category object from attributes values
@@ -44,15 +58,16 @@ func NewCategory(name string, modelas float64, coefexp float64, creep float64, a
 // NewCategoryFromArgs Returns Category object from CategoryArgs object
 func NewCategoryFromArgs(ca CategoryArgs) (*Category, error) {
 	vc := checker.New("NewCategoryFromArgs")
-	vc.Ck("Modelas", ca.Modelas).Gt(0.0)
-	vc.Ck("Coefexp", ca.Coefexp).Gt(0.0)
-	vc.Ck("Creep", ca.Creep).Ge(0.0)
-	vc.Ck("Alpha", ca.Alpha).Gt(0.0).Lt(1.0)
-	err := vc.Error()
-	if err != nil {
-		return nil, err
+	cat, err1 := NewCategory(ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id)
+	if err1 != nil {
+		if ckerr, ok := vc.Error().(*checker.CheckError); ok {
+			vc.AppendCheckError(ckerr)
+		} else {
+			vc.Append("Internal error")
+		}
+		return nil, vc.Error()
 	}
-	return &Category{ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id}, nil
+	return cat, nil
 }
 
 //----------------------------------------------------------------------------------------
