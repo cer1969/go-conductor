@@ -9,7 +9,8 @@ import (
 )
 
 func getConductor() Conductor {
-	return Conductor{CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
+	cat, _ := CC_AAAC.Get()
+	return Conductor{*cat, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
 }
 
 //----------------------------------------------------------------------------------------
@@ -24,7 +25,7 @@ func TestConstructorDefaults(t *testing.T) {
 	if cc.diameter != cond.Diameter {
 		t.Error("!=")
 	}
-	if cc.alpha != cond.Alpha {
+	if cc.alpha != cond.alpha {
 		t.Error("!=")
 	}
 	if cc.Altitude() != 300 {
@@ -112,7 +113,7 @@ func TestConstructorDiameter(t *testing.T) {
 func TestConstructurAlpha(t *testing.T) {
 	cond := getConductor()
 
-	cond.Category.Alpha = 0.001
+	cond.alpha = 0.001
 	cc, err := NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
@@ -121,7 +122,7 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.Category.Alpha = 0.999
+	cond.alpha = 0.999
 	cc, err = NewCurrentCalc(cond)
 	if err != nil {
 		t.Error(err)
@@ -130,7 +131,7 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.Category.Alpha = 0.0
+	cond.alpha = 0.0
 	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha=0 error expected")
@@ -139,7 +140,7 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha=0")
 	}
 
-	cond.Category.Alpha = -0.001
+	cond.alpha = -0.001
 	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha<0 error expected")
@@ -148,7 +149,7 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha<0")
 	}
 
-	cond.Category.Alpha = 1.0
+	cond.alpha = 1.0
 	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha=1 error expected")
@@ -157,7 +158,7 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha=1")
 	}
 
-	cond.Category.Alpha = 1.001
+	cond.alpha = 1.001
 	cc, err = NewCurrentCalc(cond)
 	if err == nil {
 		t.Error("Alpha>1 error expected")

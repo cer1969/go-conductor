@@ -6,7 +6,7 @@ package conductor
 
 // Conductor Container for conductor characteristics
 type Conductor struct {
-	Category         // Category
+	category         // Category
 	Name     string  // Name of conductor
 	Diameter float64 // Diameter [mm]
 	Area     float64 // Cross section area [mm2]

@@ -19,14 +19,14 @@ func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
 	vc := checker.New("NewCurrentCalc")
 	vc.Ck("R25", c.R25).Gt(0.0)
 	vc.Ck("Diameter", c.Diameter).Gt(0.0)
-	vc.Ck("Alpha", c.Alpha).Gt(0.0).Lt(1.0)
+	vc.Ck("Alpha", c.alpha).Gt(0.0).Lt(1.0)
 
 	err := vc.Error()
 	if err != nil {
 		return nil, err
 	}
 
-	return &CurrentCalc{c.R25, c.Diameter, c.Alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
+	return &CurrentCalc{c.R25, c.Diameter, c.alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
 //----------------------------------------------------------------------------------------
