@@ -19,15 +19,12 @@ type CategoryArgs struct {
 	Id      string
 }
 
-func (ca *CategoryArgs) Get() (*Category, error) {
+// Get Returns Category object from attributes values
+func (ca *CategoryArgs) Get() (*category, error) {
 	vc := checker.New("CategoryArgs Get")
-	cat, err1 := NewCategory(ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id)
-	if err1 != nil {
-		if ckerr, ok := vc.Error().(*checker.CheckError); ok {
-			vc.AppendCheckError(ckerr)
-		} else {
-			vc.Append("Internal error")
-		}
+	cat, err := NewCategory(ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id)
+	if err != nil {
+		vc.AppendSub(err)
 		return nil, vc.Error()
 	}
 	return cat, nil
@@ -42,7 +39,7 @@ func (ca *CategoryArgs) Get() (*Category, error) {
 // creep float64   : Creep °C (required creep >= 0)
 // alpha float64   : Temperature coefficient of resistance [1/°C] (required 0 < alpha < 1)
 // id string       : Database id
-func NewCategory(name string, modelas float64, coefexp float64, creep float64, alpha float64, id string) (*Category, error) {
+func NewCategory(name string, modelas float64, coefexp float64, creep float64, alpha float64, id string) (*category, error) {
 	vc := checker.New("NewCategory")
 	vc.Ck("Modelas", modelas).Gt(0.0)
 	vc.Ck("Coefexp", coefexp).Gt(0.0)
@@ -52,44 +49,48 @@ func NewCategory(name string, modelas float64, coefexp float64, creep float64, a
 	if err != nil {
 		return nil, err
 	}
-	return &Category{name, modelas, coefexp, creep, alpha, id}, nil
-}
-
-// NewCategoryFromArgs Returns Category object from CategoryArgs object
-func NewCategoryFromArgs(ca CategoryArgs) (*Category, error) {
-	vc := checker.New("NewCategoryFromArgs")
-	cat, err1 := NewCategory(ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id)
-	if err1 != nil {
-		if ckerr, ok := vc.Error().(*checker.CheckError); ok {
-			vc.AppendCheckError(ckerr)
-		} else {
-			vc.Append("Internal error")
-		}
-		return nil, vc.Error()
-	}
-	return cat, nil
+	return &category{name, modelas, coefexp, creep, alpha, id}, nil
 }
 
 //----------------------------------------------------------------------------------------
 
 // Category Container for category characteristics. Groups similar conductors.
-type Category struct {
-	Name    string  // Name of conductor category
-	Modelas float64 // Modulus of elasticity [kg/mm2]
-	Coefexp float64 // Coefficient of Thermal Expansion [1/°C]
-	Creep   float64 // Creep °C
-	Alpha   float64 // Temperature coefficient of resistance [1/°C]
-	Id      string  // Optional database id
+type category struct {
+	name    string  // Name of conductor category
+	modelas float64 // Modulus of elasticity [kg/mm2]
+	coefexp float64 // Coefficient of Thermal Expansion [1/°C]
+	creep   float64 // Creep °C
+	alpha   float64 // Temperature coefficient of resistance [1/°C]
+	id      string  // Optional database id
 }
 
-// Category instances to use as constants
+func (cat *category) Name() string {
+	return cat.name
+}
+func (cat *category) Modelas() float64 {
+	return cat.modelas
+}
+func (cat *category) Coefexp() float64 {
+	return cat.coefexp
+}
+func (cat *category) Creep() float64 {
+	return cat.creep
+}
+func (cat *category) Alpha() float64 {
+	return cat.alpha
+}
+func (cat *category) Id() string {
+	return cat.id
+}
+
+// CategoryArgs instances to use as constants
 var (
-	CC_CU     = Category{"COPPER", 12000.0, 0.0000169, 0.0, 0.00374, "CU"}
-	CC_AAAC   = Category{"AAAC (AASC)", 6450.0, 0.0000230, 20.0, 0.00340, "AAAC"}
-	CC_ACAR   = Category{"ACAR", 6450.0, 0.0000250, 20.0, 0.00385, "ACAR"}
-	CC_ACSR   = Category{"ACSR", 8000.0, 0.0000191, 20.0, 0.00395, "ACSR"}
-	CC_AAC    = Category{"ALUMINUM", 5600.0, 0.0000230, 20.0, 0.00395, "AAC"}
-	CC_CUWELD = Category{"COPPERWELD", 16200.0, 0.0000130, 0.0, 0.00380, "CUWELD"}
+	CC_CU     = CategoryArgs{"COPPER", 12000.0, 0.0000169, 0.0, 0.00374, "CU"}
+	CC_AAAC   = CategoryArgs{"AAAC (AASC)", 6450.0, 0.0000230, 20.0, 0.00340, "AAAC"}
+	CC_ACAR   = CategoryArgs{"ACAR", 6450.0, 0.0000250, 20.0, 0.00385, "ACAR"}
+	CC_ACSR   = CategoryArgs{"ACSR", 8000.0, 0.0000191, 20.0, 0.00395, "ACSR"}
+	CC_AAC    = CategoryArgs{"ALUMINUM", 5600.0, 0.0000230, 20.0, 0.00395, "AAC"}
+	CC_CUWELD = CategoryArgs{"COPPERWELD", 16200.0, 0.0000130, 0.0, 0.00380, "CUWELD"}
 	CC_AASC   = CC_AAAC
 	CC_ALL    = CC_AAC
 )
