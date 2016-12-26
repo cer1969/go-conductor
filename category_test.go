@@ -4,7 +4,6 @@ package conductor
 
 import (
 	"fmt"
-	//"math"
 	"testing"
 )
 
@@ -189,47 +188,11 @@ func TestNewCategoryAlpha(t *testing.T) {
 	}
 }
 
-func TestCategoryArgsContants(t *testing.T) {
-	_, err := CC_CU.Get()
-	if err != nil {
-		t.Errorf("CC_CU Error: %v", err)
-	}
-	_, err = CC_AAAC.Get()
-	if err != nil {
-		t.Errorf("CC_AAAC Error: %v", err)
-	}
-	_, err = CC_ACAR.Get()
-	if err != nil {
-		t.Errorf("CC_ACAR Error: %v", err)
-	}
-	_, err = CC_ACSR.Get()
-	if err != nil {
-		t.Errorf("CC_ACSR Error: %v", err)
-	}
-	_, err = CC_AAC.Get()
-	if err != nil {
-		t.Errorf("CC_AAC Error: %v", err)
-	}
-	_, err = CC_CUWELD.Get()
-	if err != nil {
-		t.Errorf("CC_CUWELD Error: %v", err)
-	}
-	_, err = CC_AASC.Get()
-	if err != nil {
-		t.Errorf("CC_AASC Error: %v", err)
-	}
-	_, err = CC_ALL.Get()
-	if err != nil {
-		t.Errorf("CC_ALL Error: %v", err)
-	}
-}
-
 //----------------------------------------------------------------------------------------
 
 func ExampleCategory() {
-	CC_CU.Modelas = 0
-	_, err := CC_CU.Get()
-	fmt.Printf("%q", err)
+	_, err := NewCategory("COPPER", 0.0, 0.0000169, 0.0, 0.00374, "CU")
+	fmt.Print(err)
 	// Output:
-	// "CategoryArgs Get: \n  NewCategory: Modelas (0) required value > 0, "
+	// NewCategory COPPER: Modelas (0) required value > 0,
 }

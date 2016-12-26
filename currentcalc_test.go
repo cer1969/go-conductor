@@ -9,8 +9,7 @@ import (
 )
 
 func getConductor() Conductor {
-	cat, _ := CC_AAAC.Get()
-	return Conductor{*cat, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 0, ""}
+	return Conductor{*CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 1e-10, ""}
 }
 
 //----------------------------------------------------------------------------------------
