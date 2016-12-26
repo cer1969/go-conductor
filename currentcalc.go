@@ -11,37 +11,32 @@ import (
 //----------------------------------------------------------------------------------------
 
 // NewCurrentCalc Returns CurrentCalc object
-// c Conductor: Conductor instance
-//
-// Conductor fields R25, Diameter and Alpha are copied to CurrentCal.
-// Subsequent changes in the Conductor will not be reflected in CurrentCalc.
-func NewCurrentCalc(c Conductor) (*CurrentCalc, error) {
+// c *Conductor: *Conductor instance
+func NewCurrentCalc(c *Conductor) (*CurrentCalc, error) {
 	vc := checker.New("NewCurrentCalc")
-	vc.Ck("R25", c.R25).Gt(0.0)
-	vc.Ck("Diameter", c.Diameter).Gt(0.0)
-	vc.Ck("Alpha", c.alpha).Gt(0.0).Lt(1.0)
+	vc.Ck("R25", c.r25).Gt(0.0)
+	vc.Ck("Diameter", c.diameter).Gt(0.0)
+	vc.Ck("Alpha", c.category.alpha).Gt(0.0).Lt(1.0)
 
 	err := vc.Error()
 	if err != nil {
 		return nil, err
 	}
 
-	return &CurrentCalc{c.R25, c.Diameter, c.alpha, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
+	return &CurrentCalc{c, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
 //----------------------------------------------------------------------------------------
 
 // CurrentCalc Object to calculate conductor current and temperatures.
 type CurrentCalc struct {
-	r25         float64 // Conductor.R25
-	diameter    float64 // Conductor.Diameter
-	alpha       float64 // Conductor Alpha
-	altitude    float64 // Altitude [m] = 300.0
-	airVelocity float64 // Velocity of air stream [ft/seg] =   2.0
-	sunEffect   float64 // Sun effect factor (0 to 1) = 1.0
-	emissivity  float64 // Emissivity (0 to 1) = 0.5
-	formula     string  // Define formula for current calculation = CF_IEEE
-	deltaTemp   float64 // Temperature difference to determine equality [°C] = 0.0001
+	conductor   *Conductor // *Conductor instance
+	altitude    float64    // Altitude [m] = 300.0
+	airVelocity float64    // Velocity of air stream [ft/seg] =   2.0
+	sunEffect   float64    // Sun effect factor (0 to 1) = 1.0
+	emissivity  float64    // Emissivity (0 to 1) = 0.5
+	formula     string     // Define formula for current calculation = CF_IEEE
+	deltaTemp   float64    // Temperature difference to determine equality [°C] = 0.0001
 }
 
 func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
@@ -53,7 +48,7 @@ func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
 		return math.NaN(), err
 	}
 
-	return cc.r25 * (1 + cc.alpha*(tc-25.0)), nil
+	return cc.conductor.r25 * (1 + cc.conductor.category.alpha*(tc-25.0)), nil
 }
 
 func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
@@ -72,7 +67,7 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 		return
 	}
 
-	D := cc.diameter / 25.4                                                 // Diámetro en pulgadas
+	D := cc.conductor.diameter / 25.4                                       // Diámetro en pulgadas
 	Pb := math.Pow(10, (1.880813592 - cc.altitude/18336.0))                 // Presión barométrica en cmHg
 	V := cc.airVelocity * 3600                                              // Vel. viento en pies/hora
 	res, _ := cc.Resistance(tc)                                             // No necesito verificar error porque el valor de tc ya se verificó
@@ -209,6 +204,10 @@ func (cc *CurrentCalc) Ta(tc float64, ic float64) (ta float64, err error) {
 	}
 	ta = tamed
 	return
+}
+
+func (cc *CurrentCalc) Conductor() *Conductor {
+	return cc.conductor
 }
 
 func (cc *CurrentCalc) Altitude() float64 {
