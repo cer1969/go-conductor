@@ -8,8 +8,17 @@ import (
 	"testing"
 )
 
-func getConductor() Conductor {
-	return Conductor{*CC_AAAC, "AAAC 740,8 MCM FLINT", 25.17, 0.00, 0.0, 0.0, 0.089360, 1e-10, ""}
+func getConductorArgs() ConductorArgs {
+	return ConductorArgs{"AAAC 740,8 MCM FLINT", CC_AAAC, 25.17, 0.00, 0.0, 0.0, 0.089360, 1e-10, ""}
+}
+
+func getConductor() *Conductor {
+	args := getConductorArgs()
+	return args.Get()
+}
+
+func getConductorFromCategoryArgs(args CategoryArgs) *Conductor {
+	return NewConductor("AAAC 740,8 MCM FLINT", args.Get(), 25.17, 0.00, 0.0, 0.0, 0.089360, 1e-10, "")
 }
 
 //----------------------------------------------------------------------------------------
@@ -18,13 +27,7 @@ func TestConstructorDefaults(t *testing.T) {
 	cond := getConductor()
 	cc, _ := NewCurrentCalc(cond) // No se verifica error porque los parámetros son correctos
 
-	if cc.r25 != cond.R25 {
-		t.Error("!=")
-	}
-	if cc.diameter != cond.Diameter {
-		t.Error("!=")
-	}
-	if cc.alpha != cond.alpha {
+	if cc.Conductor() != cond {
 		t.Error("!=")
 	}
 	if cc.Altitude() != 300 {
@@ -48,10 +51,10 @@ func TestConstructorDefaults(t *testing.T) {
 }
 
 func TestConstructorR25(t *testing.T) {
-	cond := getConductor()
+	args := getConductorArgs()
 
-	cond.R25 = 0.001
-	cc, err := NewCurrentCalc(cond)
+	args.R25 = 0.001
+	cc, err := NewCurrentCalc(args.Get())
 	if err != nil {
 		t.Error(err)
 	}
@@ -59,8 +62,8 @@ func TestConstructorR25(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.R25 = 0.0
-	cc, err = NewCurrentCalc(cond)
+	args.R25 = 0.0
+	cc, err = NewCurrentCalc(args.Get())
 	if err == nil {
 		t.Error("R25=0 error expected")
 	}
@@ -68,8 +71,8 @@ func TestConstructorR25(t *testing.T) {
 		t.Error("nil expected with R25=0")
 	}
 
-	cond.R25 = -0.001
-	_, err = NewCurrentCalc(cond)
+	args.R25 = -0.001
+	_, err = NewCurrentCalc(args.Get())
 	if err == nil {
 		t.Error("R25<0 error expected")
 	}
@@ -79,10 +82,10 @@ func TestConstructorR25(t *testing.T) {
 }
 
 func TestConstructorDiameter(t *testing.T) {
-	cond := getConductor()
+	args := getConductorArgs()
 
-	cond.Diameter = 0.001
-	cc, err := NewCurrentCalc(cond)
+	args.Diameter = 0.001
+	cc, err := NewCurrentCalc(args.Get())
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,8 +93,8 @@ func TestConstructorDiameter(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.Diameter = 0.0
-	cc, err = NewCurrentCalc(cond)
+	args.Diameter = 0.0
+	cc, err = NewCurrentCalc(args.Get())
 	if err == nil {
 		t.Error("Diameter=0 error expected")
 	}
@@ -99,8 +102,8 @@ func TestConstructorDiameter(t *testing.T) {
 		t.Error("nil expected with Diameter=0")
 	}
 
-	cond.Diameter = -0.001
-	cc, err = NewCurrentCalc(cond)
+	args.Diameter = -0.001
+	cc, err = NewCurrentCalc(args.Get())
 	if err == nil {
 		t.Error("Diameter<0 error expected")
 	}
@@ -110,10 +113,10 @@ func TestConstructorDiameter(t *testing.T) {
 }
 
 func TestConstructurAlpha(t *testing.T) {
-	cond := getConductor()
+	cat_args := CategoryArgs{"ALUMINUM", 5600.0, 0.0000230, 20.0, 0.00395, "AAC"}
 
-	cond.alpha = 0.001
-	cc, err := NewCurrentCalc(cond)
+	cat_args.Alpha = 0.001
+	cc, err := NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err != nil {
 		t.Error(err)
 	}
@@ -121,8 +124,8 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.alpha = 0.999
-	cc, err = NewCurrentCalc(cond)
+	cat_args.Alpha = 0.999
+	cc, err = NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,8 +133,8 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("CurrentCalc expected")
 	}
 
-	cond.alpha = 0.0
-	cc, err = NewCurrentCalc(cond)
+	cat_args.Alpha = 0.0
+	cc, err = NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err == nil {
 		t.Error("Alpha=0 error expected")
 	}
@@ -139,8 +142,8 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha=0")
 	}
 
-	cond.alpha = -0.001
-	cc, err = NewCurrentCalc(cond)
+	cat_args.Alpha = -0.001
+	cc, err = NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err == nil {
 		t.Error("Alpha<0 error expected")
 	}
@@ -148,8 +151,8 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha<0")
 	}
 
-	cond.alpha = 1.0
-	cc, err = NewCurrentCalc(cond)
+	cat_args.Alpha = 1.0
+	cc, err = NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err == nil {
 		t.Error("Alpha=1 error expected")
 	}
@@ -157,8 +160,8 @@ func TestConstructurAlpha(t *testing.T) {
 		t.Error("nil expected with Alpha=1")
 	}
 
-	cond.alpha = 1.001
-	cc, err = NewCurrentCalc(cond)
+	cat_args.Alpha = 1.001
+	cc, err = NewCurrentCalc(getConductorFromCategoryArgs(cat_args))
 	if err == nil {
 		t.Error("Alpha>1 error expected")
 	}
@@ -330,7 +333,7 @@ func TestPropDeltaTemp(t *testing.T) {
 	}
 }
 
-//----------------------------------------------------------------------------------------
+////----------------------------------------------------------------------------------------
 
 func TestMethodResistance(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
@@ -465,7 +468,6 @@ func TestMethodTc(t *testing.T) {
 	if math.Abs(tc-65) > cc.deltaTemp {
 		t.Errorf("Expected difference < %f [%f received]", cc.deltaTemp, math.Abs(tc-50))
 	}
-
 }
 
 func TestMethodTa(t *testing.T) {
@@ -524,7 +526,7 @@ func TestMethodTa(t *testing.T) {
 
 }
 
-//----------------------------------------------------------------------------------------
+////----------------------------------------------------------------------------------------
 
 func ExampleResistance() {
 	cc, _ := NewCurrentCalc(getConductor())
@@ -558,7 +560,7 @@ func ExampleTa() {
 	// 26.14
 }
 
-//----------------------------------------------------------------------------------------
+////----------------------------------------------------------------------------------------
 
 func BenchmarkResistance(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
