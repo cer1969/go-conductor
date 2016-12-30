@@ -4,9 +4,9 @@ package conductor
 
 //----------------------------------------------------------------------------------------
 
-// ConductorArgs Container for arguments for Conductor constructor
+// ConductorMaker Container for arguments for Conductor constructor
 // Is a mutable version of a Conductor object that allow to change attributes
-type ConductorArgs struct {
+type ConductorMaker struct {
 	Name     string
 	Category *Category
 	Diameter float64
@@ -19,7 +19,7 @@ type ConductorArgs struct {
 }
 
 // Get Returns *conductor object from attributes values
-func (ca *ConductorArgs) Get() *Conductor {
+func (ca *ConductorMaker) Get() *Conductor {
 	return &Conductor{ca.Name, ca.Category, ca.Diameter, ca.Area, ca.Weight, ca.Strength, ca.R25,
 		ca.Hcap, ca.Id}
 }
