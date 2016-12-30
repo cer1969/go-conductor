@@ -4,9 +4,9 @@ package conductor
 
 //----------------------------------------------------------------------------------------
 
-// CategoryArgs Container for arguments for Category constructor
+// CategoryMaker Container for arguments for Category constructor
 // Is a mutable version of a Category object that allow to change attributes
-type CategoryArgs struct {
+type CategoryMaker struct {
 	Name    string
 	Modelas float64
 	Coefexp float64
@@ -16,7 +16,7 @@ type CategoryArgs struct {
 }
 
 // Get Returns *category object from attributes values
-func (ca *CategoryArgs) Get() *Category {
+func (ca *CategoryMaker) Get() *Category {
 	return &Category{ca.Name, ca.Modelas, ca.Coefexp, ca.Creep, ca.Alpha, ca.Id}
 }
 
