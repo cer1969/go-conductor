@@ -4,8 +4,6 @@ package conductor
 
 import (
 	"math"
-
-	"bitbucket.org/tormundo/go.value/checker"
 )
 
 //----------------------------------------------------------------------------------------
@@ -13,16 +11,18 @@ import (
 // NewCurrentCalc Returns CurrentCalc object
 // c *Conductor: *Conductor instance
 func NewCurrentCalc(c *Conductor) (*CurrentCalc, error) {
-	vc := checker.New("NewCurrentCalc")
-	vc.Ck("R25", c.r25).Gt(0.0)
-	vc.Ck("Diameter", c.diameter).Gt(0.0)
-	vc.Ck("Alpha", c.category.alpha).Gt(0.0).Lt(1.0)
-
-	err := vc.Error()
-	if err != nil {
-		return nil, err
+	if c.diameter <= 0 {
+		return nil, &ValueError{"NewCurrentCalc: Conductor.Diameter <= 0"}
 	}
-
+	if c.r25 <= 0 {
+		return nil, &ValueError{"NewCurrentCalc: Conductor.R25 <= 0"}
+	}
+	if c.category.alpha <= 0 {
+		return nil, &ValueError{"NewCurrentCalc: Conductor.Category.Alpha <= 0"}
+	}
+	if c.category.alpha >= 1 {
+		return nil, &ValueError{"NewCurrentCalc: Conductor.Category.Alpha >=1"}
+	}
 	return &CurrentCalc{c, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
@@ -40,31 +40,30 @@ type CurrentCalc struct {
 }
 
 func (cc *CurrentCalc) Resistance(tc float64) (float64, error) {
-	vc := checker.New("CurrentCalc Resistance")
-	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
-
-	err := vc.Error()
-	if err != nil {
-		return math.NaN(), err
+	if tc < TC_MIN {
+		return math.NaN(), &ValueError{"CurrentCalc.Resistance: tc < TC_MIN"}
 	}
-
+	if tc > TC_MAX {
+		return math.NaN(), &ValueError{"CurrentCalc.Resistance: tc > TC_MAX"}
+	}
 	return cc.conductor.r25 * (1 + cc.conductor.category.alpha*(tc-25.0)), nil
 }
 
-func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
-	q = math.NaN()
-
-	vc := checker.New("CurrentCalc Current")
-	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
-	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
-	err = vc.Error()
-	if err != nil {
-		return
+func (cc *CurrentCalc) Current(ta float64, tc float64) (float64, error) {
+	if ta < TA_MIN {
+		return math.NaN(), &ValueError{"CurrentCalc.Current: ta < TA_MIN"}
 	}
-
+	if ta > TA_MAX {
+		return math.NaN(), &ValueError{"CurrentCalc.Current: ta > TA_MAX"}
+	}
+	if tc < TC_MIN {
+		return math.NaN(), &ValueError{"CurrentCalc.Current: tc < TC_MIN"}
+	}
+	if tc > TC_MAX {
+		return math.NaN(), &ValueError{"CurrentCalc.Current: tc > TC_MAX"}
+	}
 	if ta >= tc {
-		q = 0.0
-		return
+		return 0, nil
 	}
 
 	D := cc.conductor.diameter / 25.4                                       // Diámetro en pulgadas
@@ -101,43 +100,39 @@ func (cc *CurrentCalc) Current(ta float64, tc float64) (q float64, err error) {
 	Qs := 3.87 * D * cc.sunEffect
 
 	if (Qc + Qr) < Qs {
-		q = 0.0
+		return 0, nil
 	} else {
-		q = math.Sqrt((Qc + Qr - Qs) / Rc)
+		return math.Sqrt((Qc + Qr - Qs) / Rc), nil
 	}
-	return
 }
 
-func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
-	tc = math.NaN()
-
-	vc := checker.New("CurrentCalc Tc")
-	vc.Ck("ta", ta).Ge(TA_MIN).Le(TA_MAX)
-	err = vc.Error()
-	if err != nil {
-		return
+func (cc *CurrentCalc) Tc(ta float64, ic float64) (float64, error) {
+	if ta < TA_MIN {
+		return math.NaN(), &ValueError{"CurrentCalc.Tc: ta < TA_MIN"}
+	}
+	if ta > TA_MAX {
+		return math.NaN(), &ValueError{"CurrentCalc.Tc: ta > TA_MAX"}
 	}
 
 	icmax, _ := cc.Current(ta, TC_MAX) // No debe haber error: ta está verificado
-
-	vc.Ck("ic", ic).Ge(0).Le(icmax) // Asegura valor de ta <= tc <= TC_MAX
-	err = vc.Error()
-	if err != nil {
-		return
+	if ic < 0 {
+		return math.NaN(), &ValueError{"CurrentCalc.Tc: ic < 0"}
+	}
+	if ic > icmax {
+		return math.NaN(), &ValueError{"CurrentCalc.Tc: ic > Imax (TC_MAX)"}
 	}
 
 	var tcmin, tcmax, tcmed, icmed float64
-	var err2 error
+	var err error
 	tcmin = ta
 	tcmax = TC_MAX
 	cuenta := 0
 
 	for (tcmax - tcmin) > cc.deltaTemp {
 		tcmed = 0.5 * (tcmin + tcmax)
-		icmed, err2 = cc.Current(ta, tcmed)
-		if err2 != nil {
-			vc.Append(err2.Error())
-			return
+		icmed, err = cc.Current(ta, tcmed)
+		if err != nil {
+			return math.NaN(), &ValueError{"CurrentCalc.Tc: " + err.Error()}
 		}
 		if icmed > ic {
 			tcmax = tcmed
@@ -145,51 +140,46 @@ func (cc *CurrentCalc) Tc(ta float64, ic float64) (tc float64, err error) {
 			tcmin = tcmed
 		}
 		cuenta += 1
-		if cuenta > ITER_MAX {
-			vc.Append("CurrentCalc Tc ITERA MAX exeeded")
-			return
-		}
+		//		if cuenta > ITER_MAX {
+		//			return math.NaN(), &ValueError{"CurrentCalc.Tc: ITERA MAX exeeded"}
+		//		}
 	}
-	tc = tcmed
-	return
+	return tcmed, nil
 }
 
-func (cc *CurrentCalc) Ta(tc float64, ic float64) (ta float64, err error) {
-	ta = math.NaN()
-
-	vc := checker.New("CurrentCalc Ta")
-	vc.Ck("tc", tc).Ge(TC_MIN).Le(TC_MAX)
-	err = vc.Error()
-	if err != nil {
-		return
+func (cc *CurrentCalc) Ta(tc float64, ic float64) (float64, error) {
+	if tc < TC_MIN {
+		return math.NaN(), &ValueError{"CurrentCalc.Ta: tc < TC_MIN"}
+	}
+	if tc > TC_MAX {
+		return math.NaN(), &ValueError{"CurrentCalc.Ta: tc > TC_MAX"}
 	}
 
 	imin, _ := cc.Current(TA_MAX, tc) // No debe haber error: tc está verificado
 	imax, _ := cc.Current(TA_MIN, tc) // No debe haber error: tc está verificado
-	vc.Ck("ic", ic).Ge(imin).Le(imax) // Asegura valor de TA_MIN <= ta <= TA_MAX
-	err = vc.Error()
-	if err != nil {
-		return
+	if ic < imin {
+		return math.NaN(), &ValueError{"CurrentCalc.Ta: ic < Imin (TA_MAX)"}
+	}
+	if ic > imax {
+		return math.NaN(), &ValueError{"CurrentCalc.Ta: ic > Imax (TA_MIN)"}
 	}
 
 	var tamin, tamax, tamed, icmed float64
-	var err2 error
+	var err error
 	tamin = TA_MIN
 	tamax = math.Min(TA_MAX, tc)
 
 	if tamin > tamax {
-		ta = 0.0
-		return
+		return 0, nil
 	}
 
 	cuenta := 0
 
 	for (tamax - tamin) > cc.deltaTemp {
 		tamed = 0.5 * (tamin + tamax)
-		icmed, err2 = cc.Current(tamed, tc)
-		if err2 != nil {
-			vc.Append(err2.Error())
-			return
+		icmed, err = cc.Current(tamed, tc)
+		if err != nil {
+			return math.NaN(), &ValueError{"CurrentCalc.Ta: " + err.Error()}
 		}
 		if icmed > ic {
 			tamin = tamed
@@ -197,13 +187,11 @@ func (cc *CurrentCalc) Ta(tc float64, ic float64) (ta float64, err error) {
 			tamax = tamed
 		}
 		cuenta += 1
-		if cuenta > ITER_MAX {
-			vc.Append("CurrentCalc Ta ITERA MAX exeeded")
-			return
-		}
+		//		if cuenta > ITER_MAX {
+		//			return math.NaN(), &ValueError{"CurrentCalc.Ta: ITERA MAX exeeded"}
+		//		}
 	}
-	ta = tamed
-	return
+	return tamed, nil
 }
 
 func (cc *CurrentCalc) Conductor() *Conductor {
@@ -215,12 +203,11 @@ func (cc *CurrentCalc) Altitude() float64 {
 }
 
 func (cc *CurrentCalc) SetAltitude(h float64) error {
-	vc := checker.New("CurrentCalc SetAltitude")
-	vc.Ck("h", h).Ge(0)
-
+	if h < 0 {
+		return &ValueError{"CurrentCalc.SetAltitude: h < 0"}
+	}
 	cc.altitude = h
-
-	return vc.Error()
+	return nil
 }
 
 func (cc *CurrentCalc) AirVelocity() float64 {
@@ -228,12 +215,11 @@ func (cc *CurrentCalc) AirVelocity() float64 {
 }
 
 func (cc *CurrentCalc) SetAirVelocity(v float64) error {
-	vc := checker.New("CurrentCalc SetAirVelocity")
-	vc.Ck("v", v).Ge(0)
-
+	if v < 0 {
+		return &ValueError{"CurrentCalc.SetAirVelocity: v < 0"}
+	}
 	cc.airVelocity = v
-
-	return vc.Error()
+	return nil
 }
 
 func (cc *CurrentCalc) SunEffect() float64 {
@@ -241,12 +227,14 @@ func (cc *CurrentCalc) SunEffect() float64 {
 }
 
 func (cc *CurrentCalc) SetSunEffect(se float64) error {
-	vc := checker.New("CurrentCalc SetSunEffect")
-	vc.Ck("se", se).Ge(0).Le(1)
-
+	if se < 0 {
+		return &ValueError{"CurrentCalc.SetSunEffect: se < 0"}
+	}
+	if se > 1 {
+		return &ValueError{"CurrentCalc.SetSunEffect: se > 1"}
+	}
 	cc.sunEffect = se
-
-	return vc.Error()
+	return nil
 }
 
 func (cc *CurrentCalc) Emissivity() float64 {
@@ -254,12 +242,14 @@ func (cc *CurrentCalc) Emissivity() float64 {
 }
 
 func (cc *CurrentCalc) SetEmissivity(e float64) error {
-	vc := checker.New("CurrentCalc SetEmissivity")
-	vc.Ck("e", e).Ge(0).Le(1)
-
+	if e < 0 {
+		return &ValueError{"CurrentCalc.SetEmissivity: e < 0"}
+	}
+	if e > 1 {
+		return &ValueError{"CurrentCalc.SetEmissivity: e > 1"}
+	}
 	cc.emissivity = e
-
-	return vc.Error()
+	return nil
 }
 
 func (cc *CurrentCalc) Formula() string {
@@ -278,10 +268,9 @@ func (cc *CurrentCalc) DeltaTemp() float64 {
 }
 
 func (cc *CurrentCalc) SetDeltaTemp(t float64) error {
-	vc := checker.New("CurrentCalc SetDeltaTemp")
-	vc.Ck("t", t).Gt(0)
-
+	if t <= 0 {
+		return &ValueError{"CurrentCalc.SetDeltaTemp: t <= 0"}
+	}
 	cc.deltaTemp = t
-
-	return vc.Error()
+	return nil
 }
