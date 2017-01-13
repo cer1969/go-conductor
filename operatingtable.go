@@ -52,25 +52,6 @@ func (oi *OperatingItem) TempMaxOp() float64 {
 	return oi.tempMaxOp
 }
 
-func (oi *OperatingItem) SetTempMaxOp(t float64) error {
-	if t < TC_MIN {
-		return &ValueError{"OperatingItem.SetTempMaxOp: tempMaxOp < TC_MIN"}
-	}
-	if t > TC_MAX {
-		return &ValueError{"OperatingItem.SetTempMaxOp: tempMaxOp > TC_MAX"}
-	}
-	oi.tempMaxOp = t
-	return nil
-}
-
 func (oi *OperatingItem) Nsc() int {
 	return oi.nsc
-}
-
-func (oi *OperatingItem) SetNsc(n int) error {
-	if n < 1 {
-		return &ValueError{"OperatingItem.SetNsc: nsc < 1"}
-	}
-	oi.nsc = n
-	return nil
 }
