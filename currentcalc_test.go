@@ -23,7 +23,7 @@ func getConductorFromCategoryMaker(catmk CategoryMaker) *Conductor {
 
 //----------------------------------------------------------------------------------------
 
-func TestConstructorDefaults(t *testing.T) {
+func Test_CurrentCalc_ConstructorDefaults(t *testing.T) {
 	cond := getConductor()
 	cc, _ := NewCurrentCalc(cond) // No se verifica error porque los parámetros son correctos
 
@@ -50,7 +50,7 @@ func TestConstructorDefaults(t *testing.T) {
 	}
 }
 
-func TestConstructorR25(t *testing.T) {
+func Test_CurrentCalc_ConstructorR25(t *testing.T) {
 	cmk := getConductorMaker()
 
 	cmk.R25 = 0.001
@@ -81,7 +81,7 @@ func TestConstructorR25(t *testing.T) {
 	}
 }
 
-func TestConstructorDiameter(t *testing.T) {
+func Test_CurrentCalc_ConstructorDiameter(t *testing.T) {
 	cmk := getConductorMaker()
 
 	cmk.Diameter = 0.001
@@ -112,7 +112,7 @@ func TestConstructorDiameter(t *testing.T) {
 	}
 }
 
-func TestConstructurAlpha(t *testing.T) {
+func Test_CurrentCalc_ConstructurAlpha(t *testing.T) {
 	catmk := CategoryMaker{"ALUMINUM", 5600.0, 0.0000230, 20.0, 0.00395, "AAC"}
 
 	catmk.Alpha = 0.001
@@ -172,7 +172,7 @@ func TestConstructurAlpha(t *testing.T) {
 
 //----------------------------------------------------------------------------------------
 
-func TestPropAltitude(t *testing.T) {
+func Test_CurrentCalc_Altitude(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetAltitude(150.0)
@@ -195,7 +195,7 @@ func TestPropAltitude(t *testing.T) {
 	}
 }
 
-func TestPropAirVelocity(t *testing.T) {
+func Test_CurrentCalc_AirVelocity(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetAirVelocity(2.0)
@@ -218,7 +218,7 @@ func TestPropAirVelocity(t *testing.T) {
 	}
 }
 
-func TestPropSunEffect(t *testing.T) {
+func Test_CurrentCalc_SunEffect(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetSunEffect(0.5)
@@ -249,7 +249,7 @@ func TestPropSunEffect(t *testing.T) {
 	}
 }
 
-func TestPropEmissivity(t *testing.T) {
+func Test_CurrentCalc_Emissivity(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetEmissivity(0.7)
@@ -280,7 +280,7 @@ func TestPropEmissivity(t *testing.T) {
 	}
 }
 
-func TestPropFormula(t *testing.T) {
+func Test_CurrentCalc_Formula(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	cc.SetFormula(CF_IEEE)
@@ -306,7 +306,7 @@ func TestPropFormula(t *testing.T) {
 	}
 }
 
-func TestPropDeltaTemp(t *testing.T) {
+func Test_CurrentCalc_DeltaTemp(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	err := cc.SetDeltaTemp(0.001)
@@ -333,9 +333,9 @@ func TestPropDeltaTemp(t *testing.T) {
 	}
 }
 
-////----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
-func TestMethodResistance(t *testing.T) {
+func Test_CurrentCalc_Resistance(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	_, err := cc.Resistance(TC_MIN)
@@ -356,7 +356,7 @@ func TestMethodResistance(t *testing.T) {
 	}
 }
 
-func TestMethodCurrent(t *testing.T) {
+func Test_CurrentCalc_Current(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	_, err := cc.Current(TA_MIN, 50)
@@ -419,7 +419,7 @@ func TestMethodCurrent(t *testing.T) {
 	}
 }
 
-func TestMethodTc(t *testing.T) {
+func Test_CurrentCalc_Tc(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	// Verifica rangos de entrada para ta
@@ -470,7 +470,7 @@ func TestMethodTc(t *testing.T) {
 	}
 }
 
-func TestMethodTa(t *testing.T) {
+func Test_CurrentCalc_Ta(t *testing.T) {
 	cc, _ := NewCurrentCalc(getConductor())
 
 	// Verifica rangos de entrada para tc
@@ -526,9 +526,9 @@ func TestMethodTa(t *testing.T) {
 
 }
 
-////----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
-func ExampleResistance() {
+func Example_CurrentCalc_Resistance() {
 	cc, _ := NewCurrentCalc(getConductor())
 	r, _ := cc.Resistance(100)
 	fmt.Printf("%.4f", r)
@@ -536,7 +536,7 @@ func ExampleResistance() {
 	// 0.1121
 }
 
-func ExampleCurrent() {
+func Example_CurrentCalc_Current() {
 	cc, _ := NewCurrentCalc(getConductor())
 	cur, _ := cc.Current(25, 50)
 	fmt.Printf("%.2f", cur)
@@ -544,7 +544,7 @@ func ExampleCurrent() {
 	// 517.68
 }
 
-func ExampleTc() {
+func Example_CurrentCalc_Tc() {
 	cc, _ := NewCurrentCalc(getConductor())
 	tc, _ := cc.Tc(25, 100)
 	fmt.Printf("%.2f", tc)
@@ -552,7 +552,7 @@ func ExampleTc() {
 	// 33.87
 }
 
-func ExampleTa() {
+func Example_CurrentCalc_Ta() {
 	cc, _ := NewCurrentCalc(getConductor())
 	ta, _ := cc.Ta(35, 100)
 	fmt.Printf("%.2f", ta)
@@ -560,9 +560,9 @@ func ExampleTa() {
 	// 26.14
 }
 
-////----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
-func BenchmarkResistance(b *testing.B) {
+func Benchmark_CurrentCalc_Resistance(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -570,7 +570,7 @@ func BenchmarkResistance(b *testing.B) {
 	}
 }
 
-func BenchmarkCurrent(b *testing.B) {
+func Benchmark_CurrentCalc_Current(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -578,7 +578,7 @@ func BenchmarkCurrent(b *testing.B) {
 	}
 }
 
-func BenchmarkTc(b *testing.B) {
+func Benchmark_CurrentCalc_Tc(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
 	//cc.SetDeltaTemp(0.0001)
 	b.ResetTimer()
@@ -587,7 +587,7 @@ func BenchmarkTc(b *testing.B) {
 	}
 }
 
-func BenchmarkTa(b *testing.B) {
+func Benchmark_CurrentCalc_Ta(b *testing.B) {
 	cc, _ := NewCurrentCalc(getConductor())
 	//cc.SetDeltaTemp(0.0001)
 	b.ResetTimer()

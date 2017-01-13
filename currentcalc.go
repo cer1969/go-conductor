@@ -10,20 +10,20 @@ import (
 
 // NewCurrentCalc Returns CurrentCalc object
 // c *Conductor: *Conductor instance
-func NewCurrentCalc(c *Conductor) (*CurrentCalc, error) {
-	if c.diameter <= 0 {
+func NewCurrentCalc(conductor *Conductor) (*CurrentCalc, error) {
+	if conductor.diameter <= 0 {
 		return nil, &ValueError{"NewCurrentCalc: Conductor.Diameter <= 0"}
 	}
-	if c.r25 <= 0 {
+	if conductor.r25 <= 0 {
 		return nil, &ValueError{"NewCurrentCalc: Conductor.R25 <= 0"}
 	}
-	if c.category.alpha <= 0 {
+	if conductor.category.alpha <= 0 {
 		return nil, &ValueError{"NewCurrentCalc: Conductor.Category.Alpha <= 0"}
 	}
-	if c.category.alpha >= 1 {
+	if conductor.category.alpha >= 1 {
 		return nil, &ValueError{"NewCurrentCalc: Conductor.Category.Alpha >=1"}
 	}
-	return &CurrentCalc{c, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
+	return &CurrentCalc{conductor, 300.0, 2.0, 1.0, 0.5, CF_IEEE, 0.01}, nil
 }
 
 //----------------------------------------------------------------------------------------
