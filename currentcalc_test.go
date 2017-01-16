@@ -50,6 +50,26 @@ func Test_CurrentCalc_ConstructorDefaults(t *testing.T) {
 	}
 }
 
+func Test_CurrentCalc_ConstructorConductor(t *testing.T) {
+	cc, err := NewCurrentCalc(nil)
+	if err == nil {
+		t.Error("Conductor=nil error expected")
+	}
+	if cc != nil {
+		t.Error("nil expected with Conductor=nil")
+	}
+
+	cmk := getConductorMaker()
+	cmk.Category = nil
+	cc, err = NewCurrentCalc(cmk.Get())
+	if err == nil {
+		t.Error("Category=nil error expected")
+	}
+	if cc != nil {
+		t.Error("nil expected with Category=nil")
+	}
+}
+
 func Test_CurrentCalc_ConstructorR25(t *testing.T) {
 	cmk := getConductorMaker()
 
