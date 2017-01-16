@@ -22,7 +22,7 @@ func (ca *CategoryMaker) Get() *Category {
 
 //----------------------------------------------------------------------------------------
 
-// NewCategory Returns *category object from arguments values
+// NewCategory Returns *Category object from arguments values
 // name    string  : Name of conductor category
 // modelas float64 : Modulus of elasticity [kg/mm2] (required modelas > 0)
 // coefexp float64 : Coefficient of Thermal Expansion [1/°C] (required coefexp > 0)

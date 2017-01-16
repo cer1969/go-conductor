@@ -8,9 +8,15 @@ import (
 
 //----------------------------------------------------------------------------------------
 
-// NewCurrentCalc Returns CurrentCalc object
+// NewCurrentCalc Returns *CurrentCalc object
 // c *Conductor: *Conductor instance
 func NewCurrentCalc(conductor *Conductor) (*CurrentCalc, error) {
+	if conductor == nil {
+		return nil, &ValueError{"NewCurrentCalc: Conductor == nil"}
+	}
+	if conductor.category == nil {
+		return nil, &ValueError{"NewCurrentCalc: Conductor.Category == nil"}
+	}
 	if conductor.diameter <= 0 {
 		return nil, &ValueError{"NewCurrentCalc: Conductor.Diameter <= 0"}
 	}

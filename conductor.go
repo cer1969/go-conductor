@@ -26,7 +26,7 @@ func (ca *ConductorMaker) Get() *Conductor {
 
 //----------------------------------------------------------------------------------------
 
-// NewConductor Returns *conductor object from arguments values
+// NewConductor Returns *Conductor object from arguments values
 // name     string    : Name of conductor
 // category *category : *category instance
 // diameter float64   : Diameter [mm]
